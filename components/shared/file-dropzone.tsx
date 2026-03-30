@@ -1,7 +1,8 @@
 "use client";
 
 import { Upload, X } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useId, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface FileDropzoneProps {
@@ -21,6 +22,7 @@ export function FileDropzone({
 }: FileDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const inputId = useId();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -40,7 +42,7 @@ export function FileDropzone({
 
       const droppedFiles = Array.from(e.dataTransfer.files);
       const validFiles = droppedFiles.filter(
-        (file) => file.size <= maxSize * 1024 * 1024
+        (file) => file.size <= maxSize * 1024 * 1024,
       );
 
       if (!multiple && validFiles.length > 0) {
@@ -53,13 +55,13 @@ export function FileDropzone({
         onFilesSelected?.(newFiles);
       }
     },
-    [maxSize, multiple, onFilesSelected]
+    [maxSize, multiple, onFilesSelected],
   );
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     const validFiles = selectedFiles.filter(
-      (file) => file.size <= maxSize * 1024 * 1024
+      (file) => file.size <= maxSize * 1024 * 1024,
     );
 
     if (!multiple && validFiles.length > 0) {
@@ -90,13 +92,13 @@ export function FileDropzone({
           "flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center transition-all cursor-pointer",
           isDragging
             ? "border-blue-500 bg-blue-500/10"
-            : "border-zinc-700 bg-zinc-900/50 hover:border-zinc-600 hover:bg-zinc-900"
+            : "border-zinc-700 bg-zinc-900/50 hover:border-zinc-600 hover:bg-zinc-900",
         )}
       >
         <Upload
           className={cn(
             "h-12 w-12 mb-4 transition-colors",
-            isDragging ? "text-blue-500" : "text-zinc-500"
+            isDragging ? "text-blue-500" : "text-zinc-500",
           )}
         />
         <h3 className="text-lg font-semibold mb-2">
@@ -105,19 +107,20 @@ export function FileDropzone({
         <p className="text-sm text-zinc-400 mb-6">
           or click to browse • Max {maxSize}MB per file
         </p>
-        <label className="cursor-pointer">
-          <input
-            type="file"
-            accept={accept}
-            multiple={multiple}
-            onChange={handleFileInput}
-            className="hidden"
-          />
-          <div className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-            <Upload className="mr-2 h-4 w-4" />
+        <input
+          id={inputId}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          onChange={handleFileInput}
+          className="hidden"
+        />
+        <Button asChild size="sm" className="px-4">
+          <label htmlFor={inputId} className="cursor-pointer">
+            <Upload className="h-4 w-4" />
             Select {multiple ? "Files" : "File"}
-          </div>
-        </label>
+          </label>
+        </Button>
       </div>
 
       {files.length > 0 && (
@@ -138,12 +141,15 @@ export function FileDropzone({
                   </p>
                 </div>
               </div>
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => removeFile(index)}
-                className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="h-8 w-8 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
           ))}
         </div>

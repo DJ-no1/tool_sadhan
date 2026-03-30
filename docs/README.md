@@ -15,7 +15,7 @@ A modular tool library website built with Next.js 14+, shadcn/ui, and Tailwind C
 
 ## Project Structure
 
-```
+````
 tool_sadhan/
 ├── app/
 │   ├── layout.tsx           # Root layout with Header/Footer
@@ -53,7 +53,9 @@ tool_sadhan/
 │   └── index.ts             # TypeScript interfaces
 └── docs/
     ├── README.md            # This file
-    └── SHADCN-SETUP.md      # shadcn components guide
+    ├── SHADCN-SETUP.md      # shadcn components guide
+    └── tools/
+        └── video-converter.md # Modular video converter docs
 
 ## Getting Started
 
@@ -68,7 +70,7 @@ node create-structure.js
 
 # Install shadcn components
 pnpm dlx shadcn@latest add button card badge input label progress separator tabs dialog dropdown-menu select slider toast alert
-```
+````
 
 ### Development
 
@@ -92,7 +94,7 @@ pnpm start
 - **Background**: zinc-950 (nearly black)
 - **Cards**: zinc-900/50 with zinc-800 borders
 - **Text**: zinc-50 (primary), zinc-400 (secondary)
-- **Accents**: 
+- **Accents**:
   - PDF Tools: red-500
   - Image Tools: blue-500
   - Video Tools: purple-500
@@ -100,6 +102,7 @@ pnpm start
 ### Components
 
 #### ToolCard
+
 Displays individual tools with icon, name, description, and link.
 
 ```tsx
@@ -114,6 +117,7 @@ Displays individual tools with icon, name, description, and link.
 ```
 
 #### CategorySection
+
 Groups tools by category with header and grid layout.
 
 ```tsx
@@ -127,6 +131,7 @@ Groups tools by category with header and grid layout.
 ```
 
 #### FileDropzone
+
 Drag & drop file upload with file preview.
 
 ```tsx
@@ -182,17 +187,20 @@ Create processing logic in `lib/tools/pdf/rotate.ts`
 ## Tool Categories
 
 ### PDF Tools
+
 - Merge PDF
 - Compress PDF
 - Split PDF
 - Convert PDF
 
 ### Image Tools
+
 - Compress Image
 - Resize Image
 - Convert Image
 
 ### Video Tools
+
 - Compress Video
 - Convert Video
 
