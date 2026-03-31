@@ -54,7 +54,7 @@ export function VideoUploadCard({
         onFileSelected(file);
       }
     },
-    [onFileSelected]
+    [onFileSelected],
   );
 
   const handleClick = useCallback(() => {
@@ -82,7 +82,7 @@ export function VideoUploadCard({
             "hover:border-primary/50 hover:bg-muted/50",
             isDragging
               ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25"
+              : "border-muted-foreground/25",
           )}
         >
           <div
@@ -90,7 +90,7 @@ export function VideoUploadCard({
               "flex h-14 w-14 items-center justify-center rounded-full transition-colors",
               isDragging
                 ? "bg-primary/10 text-primary"
-                : "bg-muted text-muted-foreground"
+                : "bg-muted text-muted-foreground",
             )}
           >
             <Upload className="h-6 w-6" />
@@ -98,7 +98,9 @@ export function VideoUploadCard({
 
           <div className="text-center">
             <p className="text-sm font-medium">
-              {isDragging ? "Drop your video here" : "Drag & drop your video here"}
+              {isDragging
+                ? "Drop your video here"
+                : "Drag & drop your video here"}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               or click to browse

@@ -207,7 +207,9 @@ export function VideoSettingsCard({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Extracting...</span>
-              <span className="font-medium">{Math.round(extractionProgress)}%</span>
+              <span className="font-medium">
+                {Math.round(extractionProgress)}%
+              </span>
             </div>
             <Progress value={extractionProgress} className="h-2" />
           </div>
