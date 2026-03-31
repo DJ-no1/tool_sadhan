@@ -1,0 +1,199 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import { Scissors, Trash2, FileText, X } from "lucide-react";
+import {
+  PDFToolLayout,
+  PDFDropzone,
+  ProcessingPanel,
+  OptionsPanel,
+  OptionGroup,
+  ActionButton,
+  type ProcessingStatus,
+} from "@/components/tools/pdf";
+
+interface PDFFile {
+  id: string;
+  file: File;
+}
+
+export default function RemovePDFPage() {
+  const [files, setFiles] = useState<PDFFile[]>([]);
+  const [status, setStatus] = useState<ProcessingStatus>("idle");
+  const [progress, setProgress] = useState(0);
+  const [resultFile, setResultFile] = useState<{
+    name: string;
+    size: number;
+  } | null>(null);
+
+  const [pagesToRemove, setPagesToRemove] = useState<number[]>([]);
+  const totalPages = 15; // Simulated
+
+  const handleFilesChange = useCallback((newFiles: PDFFile[]) => {
+    setFiles(newFiles);
+    setStatus("idle");
+    setResultFile(null);
+    setPagesToRemove([]);
+  }, []);
+
+  const togglePage = (pageNum: number) => {
+    if (pagesToRemove.includes(pageNum)) {
+      setPagesToRemove(pagesToRemove.filter(p => p !== pageNum));
+    } else {
+      setPagesToRemove([...pagesToRemove, pageNum].sort((a, b) => a - b));
+    }
+  };
+
+  const handleRemove = async () => {
+    if (files.length === 0 || pagesToRemove.length === 0) return;
+
+    setStatus("processing");
+    setProgress(0);
+
+    const intervals = [25, 50, 75, 100];
+    for (const p of intervals) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      setProgress(p);
+    }
+
+    const remainingPages = totalPages - pagesToRemove.length;
+    setResultFile({
+      name: files[0].file.name.replace(".pdf", "_edited.pdf"),
+      size: (files[0].file.size / totalPages) * remainingPages,
+    });
+
+    setStatus("completed");
+  };
+
+  const handleReset = () => {
+    setFiles([]);
+    setStatus("idle");
+    setProgress(0);
+    setResultFile(null);
+    setPagesToRemove([]);
+  };
+
+  const handleDownload = () => {
+    console.log("Downloading edited PDF");
+  };
+
+  const remainingPages = totalPages - pagesToRemove.length;
+
+  return (
+    <PDFToolLayout
+      title="Remove Pages"
+      description="Delete unwanted pages from your PDF. Select the pages you want to remove."
+      icon={Scissors}
+      features={["Visual selection", "Keep remaining pages", "Instant removal"]}
+    >
+      <div className="space-y-6">
+        {status === "idle" && (
+          <>
+            <PDFDropzone
+              multiple={false}
+              maxSize={100}
+              onFilesChange={handleFilesChange}
+            />
+
+            {files.length > 0 && (
+              <>
+                <OptionsPanel>
+                  <OptionGroup
+                    title="Select Pages to Remove"
+                    description="Click on pages you want to delete. Red pages will be removed."
+                  >
+                    <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                        const isMarkedForRemoval = pagesToRemove.includes(pageNum);
+                        return (
+                          <button
+                            key={pageNum}
+                            type="button"
+                            onClick={() => togglePage(pageNum)}
+                            className={`aspect-[3/4] rounded-lg border flex flex-col items-center justify-center transition-all relative overflow-hidden ${
+                              isMarkedForRemoval
+                                ? "border-red-500 bg-red-500/20"
+                                : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                            }`}
+                          >
+                            {isMarkedForRemoval && (
+                              <div className="absolute inset-0 bg-red-500/10 flex items-center justify-center">
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="w-full h-0.5 bg-red-500 rotate-45 absolute" />
+                                </div>
+                              </div>
+                            )}
+                            <FileText className={`h-4 w-4 mb-1 ${isMarkedForRemoval ? "text-red-500" : "text-zinc-500"}`} />
+                            <span className={`text-xs font-medium ${isMarkedForRemoval ? "text-red-500" : ""}`}>{pageNum}</span>
+                            {isMarkedForRemoval && (
+                              <div className="absolute top-1 right-1">
+                                <X className="h-3 w-3 text-red-500" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </OptionGroup>
+
+                  {/* Summary */}
+                  <div className="mt-4 pt-4 border-t border-zinc-800">
+                    <div className="flex items-center justify-between text-sm mb-4">
+                      <span className="text-zinc-400">
+                        Removing {pagesToRemove.length} page{pagesToRemove.length !== 1 ? "s" : ""}
+                      </span>
+                      <span className="text-green-500">
+                        {remainingPages} page{remainingPages !== 1 ? "s" : ""} will remain
+                      </span>
+                    </div>
+
+                    {pagesToRemove.length > 0 && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs text-zinc-500">Pages to remove:</span>
+                        {pagesToRemove.map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => togglePage(p)}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-500/20 border border-red-500/30 text-xs text-red-400 hover:bg-red-500/30"
+                          >
+                            Page {p}
+                            <X className="h-3 w-3" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </OptionsPanel>
+
+                {pagesToRemove.length > 0 && remainingPages < 1 && (
+                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center">
+                    <p className="text-red-400">You cannot remove all pages. At least one page must remain.</p>
+                  </div>
+                )}
+
+                <ActionButton
+                  icon={Trash2}
+                  onClick={handleRemove}
+                  disabled={pagesToRemove.length === 0 || remainingPages < 1}
+                  className="w-full"
+                >
+                  Remove {pagesToRemove.length} Page{pagesToRemove.length !== 1 ? "s" : ""}
+                </ActionButton>
+              </>
+            )}
+          </>
+        )}
+
+        <ProcessingPanel
+          status={status}
+          progress={progress}
+          message={status === "processing" ? "Removing pages..." : undefined}
+          resultFile={resultFile || undefined}
+          onDownload={handleDownload}
+          onReset={handleReset}
+        />
+      </div>
+    </PDFToolLayout>
+  );
+}

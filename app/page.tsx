@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="container mx-auto px-4 py-12 space-y-16">
+    <div className="container mx-auto px-8 md:px-16 lg:px-24 py-12 space-y-16">
       {/* Hero Section */}
       <section className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 p-12 text-center">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />

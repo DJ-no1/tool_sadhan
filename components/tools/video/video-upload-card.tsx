@@ -1,17 +1,10 @@
 "use client";
 
-import { useRef } from "react";
-import { FileVideo, Upload } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useCallback, useRef, useState } from "react";
+import { Upload } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface VideoUploadCardProps {
   acceptedFormats: string[];
@@ -32,30 +25,91 @@ export function VideoUploadCard({
   onFileSelected,
 }: VideoUploadCardProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const formatLabel = acceptedFormats
     .map((format) => FORMAT_LABELS[format] ?? format)
     .join(", ");
 
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+
+      const file = e.dataTransfer.files?.[0];
+      if (file) {
+        onFileSelected(file);
+      }
+    },
+    [onFileSelected]
+  );
+
+  const handleClick = useCallback(() => {
+    inputRef.current?.click();
+  }, []);
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="rounded-md bg-muted p-2 text-muted-foreground">
-            <FileVideo className="h-5 w-5" />
+    <Card className="overflow-hidden">
+      <CardContent className="p-0">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={handleClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleClick();
+            }
+          }}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={cn(
+            "flex cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed p-8 transition-all",
+            "hover:border-primary/50 hover:bg-muted/50",
+            isDragging
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/25"
+          )}
+        >
+          <div
+            className={cn(
+              "flex h-14 w-14 items-center justify-center rounded-full transition-colors",
+              isDragging
+                ? "bg-primary/10 text-primary"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            <Upload className="h-6 w-6" />
           </div>
-          <div>
-            <CardTitle>Upload Video</CardTitle>
-            <CardDescription>
-              Select one file to start extraction.
-            </CardDescription>
+
+          <div className="text-center">
+            <p className="text-sm font-medium">
+              {isDragging ? "Drop your video here" : "Drag & drop your video here"}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              or click to browse
+            </p>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">{formatLabel}</Badge>
-          <Badge variant="secondary">Max {maxFileSizeMB}MB</Badge>
+
+          <div className="flex flex-wrap justify-center gap-2 text-xs text-muted-foreground">
+            <span>{formatLabel}</span>
+            <span>•</span>
+            <span>Max {maxFileSizeMB}MB</span>
+          </div>
         </div>
 
         <Input
@@ -71,11 +125,6 @@ export function VideoUploadCard({
             }
           }}
         />
-
-        <Button onClick={() => inputRef.current?.click()} className="w-full">
-          <Upload className="h-4 w-4" />
-          Choose Video
-        </Button>
       </CardContent>
     </Card>
   );

@@ -7,6 +7,14 @@ import { VideoPreviewCard } from "./video-preview-card";
 import { VideoResultsGrid } from "./video-results-grid";
 import { VideoSettingsCard } from "@/components/tools/video/video-settings-card";
 import { VideoUploadCard } from "./video-upload-card";
+import { MemoryWarningAlert } from "./memory-warning-alert";
+import {
+  checkMemoryRisk,
+  createTrackedBlobURL,
+  revokeTrackedBlobURL,
+  requestGCHint,
+  DEFAULT_CHUNK_SIZE,
+} from "@/lib/memory";
 import type {
   ExtractedFrame,
   ExtractionMode,
@@ -14,6 +22,7 @@ import type {
   OutputFormatOption,
   VideoInfo,
   VideoToJpgConverterProps,
+  MemoryRisk,
 } from "./types";
 
 const OUTPUT_FORMAT_OPTIONS: OutputFormatOption[] = [
@@ -44,6 +53,7 @@ const OUTPUT_FORMAT_OPTIONS: OutputFormatOption[] = [
 
 const MAX_EXTRACTABLE_FRAMES = 6000;
 const MAX_EXTRACTION_FPS = 60;
+const FRAMES_PER_CHUNK = DEFAULT_CHUNK_SIZE; // Process frames in chunks for memory efficiency
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -270,8 +280,10 @@ export function VideoToJpgConverter({
   const [isExportingZip, setIsExportingZip] = useState<boolean>(false);
   const [extractionProgress, setExtractionProgress] = useState<number>(0);
   const [error, setError] = useState<string>("");
+  const [memoryWarning, setMemoryWarning] = useState<MemoryRisk | null>(null);
 
   const analysisIdRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const maxFileSizeMB = useMemo(
     () => Math.round(maxFileSize / 1024 / 1024),
@@ -285,18 +297,30 @@ export function VideoToJpgConverter({
     );
   }, [outputFormat]);
 
+  // Memory-efficient frame cleanup using tracked blob URLs
   const revokeFrames = useCallback((frames: ExtractedFrame[]) => {
     for (const frame of frames) {
-      URL.revokeObjectURL(frame.url);
+      revokeTrackedBlobURL(frame.url);
+    }
+    // Hint garbage collection after bulk cleanup
+    requestGCHint();
+  }, []);
+
+  // Cancel ongoing extraction
+  const cancelExtraction = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
   }, []);
 
   const clearVideo = useCallback(() => {
     analysisIdRef.current += 1;
+    cancelExtraction();
 
     setVideoUrl((currentUrl) => {
       if (currentUrl) {
-        URL.revokeObjectURL(currentUrl);
+        revokeTrackedBlobURL(currentUrl);
       }
       return "";
     });
@@ -312,17 +336,20 @@ export function VideoToJpgConverter({
     setEndTime(0);
     setIsAnalyzingVideo(false);
     setError("");
+    setMemoryWarning(null);
     setExtractionProgress(0);
     setExtractionMode("interval");
-  }, [revokeFrames]);
+  }, [revokeFrames, cancelExtraction]);
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
+      cancelExtraction();
       if (videoUrl) {
-        URL.revokeObjectURL(videoUrl);
+        revokeTrackedBlobURL(videoUrl);
       }
     };
-  }, [videoUrl]);
+  }, [videoUrl, cancelExtraction]);
 
   useEffect(() => {
     return () => {
@@ -357,11 +384,11 @@ export function VideoToJpgConverter({
         return [];
       });
 
-      const nextVideoUrl = URL.createObjectURL(file);
+      const nextVideoUrl = createTrackedBlobURL(file);
 
       setVideoUrl((currentUrl) => {
         if (currentUrl) {
-          URL.revokeObjectURL(currentUrl);
+          revokeTrackedBlobURL(currentUrl);
         }
         return nextVideoUrl;
       });
@@ -493,9 +520,17 @@ export function VideoToJpgConverter({
       effectiveInterval = 1 / cappedFrameRate;
     }
 
+    // Cancel any previous extraction
+    cancelExtraction();
+    
+    // Create new abort controller for this extraction
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsExtracting(true);
     setExtractionProgress(0);
     setError("");
+    setMemoryWarning(null);
 
     setExtractedFrames((frames) => {
       revokeFrames(frames);
@@ -546,6 +581,23 @@ export function VideoToJpgConverter({
         throw new Error("No frames found in selected range.");
       }
 
+      // Check memory risk before starting
+      const memoryRisk = checkMemoryRisk(
+        frameCount,
+        video.videoWidth,
+        video.videoHeight,
+        selectedOutputFormatOption.id
+      );
+
+      if (memoryRisk.risk === "critical") {
+        setMemoryWarning(memoryRisk);
+        throw new Error(memoryRisk.message);
+      }
+
+      if (memoryRisk.risk === "high" || memoryRisk.risk === "medium") {
+        setMemoryWarning(memoryRisk);
+      }
+
       const canvas = document.createElement("canvas");
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -558,7 +610,13 @@ export function VideoToJpgConverter({
       const nextFrames: ExtractedFrame[] = [];
       const fileBaseName = videoFile.name.replace(/\.[^/.]+$/, "");
 
+      // Process frames in chunks for better memory management
       for (let index = 0; index < frameCount; index += 1) {
+        // Check for cancellation
+        if (controller.signal.aborted) {
+          throw new DOMException("Extraction cancelled", "AbortError");
+        }
+
         const timestamp = Math.min(
           timestamps[index],
           Math.max(video.duration - 0.001, 0),
@@ -573,7 +631,8 @@ export function VideoToJpgConverter({
           selectedOutputFormatOption.quality,
         );
 
-        const frameUrl = URL.createObjectURL(blob);
+        // Use tracked blob URL for automatic cleanup
+        const frameUrl = createTrackedBlobURL(blob);
         const extension = selectedOutputFormatOption.extension;
 
         nextFrames.push({
@@ -585,19 +644,37 @@ export function VideoToJpgConverter({
         });
 
         setExtractionProgress(((index + 1) / frameCount) * 100);
+
+        // Yield to main thread every chunk to prevent UI blocking
+        if ((index + 1) % FRAMES_PER_CHUNK === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+          // Request GC hint after each chunk to help memory management
+          requestGCHint();
+        }
       }
+
+      // Cleanup video element to free memory
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
 
       setExtractedFrames(nextFrames);
     } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "Failed to extract video frames.",
-      );
+      if (cause instanceof DOMException && cause.name === "AbortError") {
+        setError("Extraction was cancelled.");
+      } else {
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : "Failed to extract video frames.",
+        );
+      }
     } finally {
       setIsExtracting(false);
+      abortControllerRef.current = null;
     }
   }, [
+    cancelExtraction,
     endTime,
     extractionMode,
     frameInterval,
@@ -644,7 +721,7 @@ export function VideoToJpgConverter({
   }, [extractedFrames, videoFile]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {!videoFile || !videoUrl ? (
         <VideoUploadCard
           acceptedFormats={acceptedFormats}
@@ -652,7 +729,7 @@ export function VideoToJpgConverter({
           onFileSelected={handleFileSelected}
         />
       ) : (
-        <>
+        <div className="space-y-4">
           <VideoPreviewCard
             file={videoFile}
             videoUrl={videoUrl}
@@ -685,8 +762,18 @@ export function VideoToJpgConverter({
               setOutputFormat(value)
             }
             onExtract={extractFrames}
+            onCancel={isExtracting ? cancelExtraction : undefined}
           />
-        </>
+        </div>
+      )}
+
+      {memoryWarning && (
+        <MemoryWarningAlert
+          risk={memoryWarning.risk}
+          message={memoryWarning.message}
+          estimatedMB={memoryWarning.estimatedMB}
+          onDismiss={() => setMemoryWarning(null)}
+        />
       )}
 
       <VideoResultsGrid
