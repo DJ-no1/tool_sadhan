@@ -124,15 +124,15 @@ export default function SplitPDFPage() {
                         >
                           <div className="flex items-center gap-4">
                             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                              mode === m.id ? "bg-red-500/20" : "bg-zinc-800"
+                              mode === m.id ? "bg-red-500/20" : "bg-surface-2"
                             }`}>
                               <m.icon className={`h-5 w-5 ${
-                                mode === m.id ? "text-red-500" : "text-zinc-400"
+                                mode === m.id ? "text-red-500" : "text-muted-foreground"
                               }`} />
                             </div>
                             <div>
                               <span className="font-medium">{m.name}</span>
-                              <p className="text-sm text-zinc-400">{m.description}</p>
+                              <p className="text-sm text-muted-foreground">{m.description}</p>
                             </div>
                           </div>
                         </OptionCard>
@@ -141,7 +141,7 @@ export default function SplitPDFPage() {
                   </OptionGroup>
 
                   {/* Mode-specific options */}
-                  <div className="mt-6 pt-6 border-t border-zinc-800">
+                  <div className="mt-6 pt-6 border-t border-border">
                     {mode === "range" && (
                       <OptionGroup
                         title="Page Ranges"
@@ -151,9 +151,9 @@ export default function SplitPDFPage() {
                           value={pageRanges}
                           onChange={(e) => setPageRanges(e.target.value)}
                           placeholder="1-5, 10-15, 20"
-                          className="bg-zinc-800 border-zinc-700"
+                          className="bg-surface-2 border-border-strong"
                         />
-                        <p className="text-xs text-zinc-500 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2">
                           Each range will be saved as a separate PDF file
                         </p>
                       </OptionGroup>
@@ -168,9 +168,9 @@ export default function SplitPDFPage() {
                           value={extractPages}
                           onChange={(e) => setExtractPages(e.target.value)}
                           placeholder="1, 3, 5, 7, 9"
-                          className="bg-zinc-800 border-zinc-700"
+                          className="bg-surface-2 border-border-strong"
                         />
-                        <p className="text-xs text-zinc-500 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2">
                           All selected pages will be combined into a single PDF
                         </p>
                       </OptionGroup>
@@ -188,11 +188,11 @@ export default function SplitPDFPage() {
                             onChange={(e) => setSplitEvery(parseInt(e.target.value) || 1)}
                             min={1}
                             max={100}
-                            className="w-24 bg-zinc-800 border-zinc-700"
+                            className="w-24 bg-surface-2 border-border-strong"
                           />
-                          <span className="text-zinc-400">pages</span>
+                          <span className="text-muted-foreground">pages</span>
                         </div>
-                        <p className="text-xs text-zinc-500 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2">
                           Creates multiple PDFs, each containing {splitEvery} pages
                         </p>
                       </OptionGroup>

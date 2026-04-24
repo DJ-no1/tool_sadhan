@@ -110,18 +110,18 @@ export default function PDFToExcelPage() {
                     <div className="space-y-6">
                       {/* Table Detection */}
                       <OptionGroup title="Table Detection">
-                        <label className="flex items-start gap-3 cursor-pointer group p-4 rounded-xl border border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600">
+                        <label className="flex items-start gap-3 cursor-pointer group p-4 rounded-lg border border-border-strong/50 bg-surface-2/30 hover:border-border-strong">
                           <input
                             type="checkbox"
                             checked={detectTables}
                             onChange={(e) => setDetectTables(e.target.checked)}
-                            className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500 mt-0.5"
+                            className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500 mt-0.5"
                           />
                           <div>
-                            <span className="font-medium group-hover:text-white transition-colors">
+                            <span className="font-medium group-hover:text-foreground transition-colors">
                               Smart table detection
                             </span>
-                            <p className="text-sm text-zinc-400 mt-1">
+                            <p className="text-sm text-muted-foreground mt-1">
                               Automatically detect table boundaries and structure
                             </p>
                           </div>
@@ -130,18 +130,18 @@ export default function PDFToExcelPage() {
 
                       {/* Merge Option */}
                       <OptionGroup title="Output Structure">
-                        <label className="flex items-start gap-3 cursor-pointer group p-4 rounded-xl border border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600">
+                        <label className="flex items-start gap-3 cursor-pointer group p-4 rounded-lg border border-border-strong/50 bg-surface-2/30 hover:border-border-strong">
                           <input
                             type="checkbox"
                             checked={mergeSheets}
                             onChange={(e) => setMergeSheets(e.target.checked)}
-                            className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500 mt-0.5"
+                            className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500 mt-0.5"
                           />
                           <div>
-                            <span className="font-medium group-hover:text-white transition-colors">
+                            <span className="font-medium group-hover:text-foreground transition-colors">
                               Merge all pages into one sheet
                             </span>
-                            <p className="text-sm text-zinc-400 mt-1">
+                            <p className="text-sm text-muted-foreground mt-1">
                               Combine all tables into a single Excel sheet
                             </p>
                           </div>
@@ -159,14 +159,14 @@ export default function PDFToExcelPage() {
                           type="button"
                           onClick={() => setFormat(f.id)}
                           className={cn(
-                            "p-4 rounded-xl border text-center transition-all",
+                            "p-4 rounded-lg border text-center transition-all",
                             format === f.id
                               ? "border-red-500 bg-red-500/10"
-                              : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                              : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                           )}
                         >
                           <p className="font-semibold text-lg">.{f.id.toUpperCase()}</p>
-                          <p className="text-xs text-zinc-400">{f.desc}</p>
+                          <p className="text-xs text-muted-foreground">{f.desc}</p>
                         </button>
                       ))}
                     </div>
@@ -181,34 +181,34 @@ export default function PDFToExcelPage() {
                           type="button"
                           onClick={() => setMode(m.id)}
                           className={cn(
-                            "w-full p-4 rounded-xl border text-left flex items-center gap-4 transition-all",
+                            "w-full p-4 rounded-lg border text-left flex items-center gap-4 transition-all",
                             mode === m.id
                               ? "border-red-500 bg-red-500/10"
-                              : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                              : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                           )}
                         >
                           <div className={cn(
                             "w-10 h-10 rounded-lg flex items-center justify-center",
-                            mode === m.id ? "bg-red-500/20" : "bg-zinc-800"
+                            mode === m.id ? "bg-red-500/20" : "bg-surface-2"
                           )}>
-                            <m.icon className={cn("h-5 w-5", mode === m.id ? "text-red-500" : "text-zinc-400")} />
+                            <m.icon className={cn("h-5 w-5", mode === m.id ? "text-red-500" : "text-muted-foreground")} />
                           </div>
                           <div className="flex-1">
                             <p className="font-medium">{m.name}</p>
-                            <p className="text-sm text-zinc-400">{m.desc}</p>
+                            <p className="text-sm text-muted-foreground">{m.desc}</p>
                           </div>
                         </button>
                       ))}
                     </div>
 
                     {mode === "pages" && (
-                      <div className="mt-4 pl-4 border-l-2 border-zinc-700">
-                        <label className="text-sm text-zinc-400 mb-2 block">Page range (e.g., 1-5, 8, 11-15)</label>
+                      <div className="mt-4 pl-4 border-l-2 border-border-strong">
+                        <label className="text-sm text-muted-foreground mb-2 block">Page range (e.g., 1-5, 8, 11-15)</label>
                         <Input
                           value={pageRange}
                           onChange={(e) => setPageRange(e.target.value)}
                           placeholder="1-5, 10"
-                          className="bg-zinc-800 border-zinc-700"
+                          className="bg-surface-2 border-border-strong"
                         />
                       </div>
                     )}

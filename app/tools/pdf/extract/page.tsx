@@ -118,28 +118,28 @@ export default function ExtractPDFPage() {
                     <button
                       type="button"
                       onClick={selectAll}
-                      className="px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-800/50 text-sm hover:bg-zinc-700 transition-colors"
+                      className="px-3 py-1.5 rounded-lg border border-border-strong bg-surface-2 text-sm hover:bg-surface-3 transition-colors"
                     >
                       Select All
                     </button>
                     <button
                       type="button"
                       onClick={selectNone}
-                      className="px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-800/50 text-sm hover:bg-zinc-700 transition-colors"
+                      className="px-3 py-1.5 rounded-lg border border-border-strong bg-surface-2 text-sm hover:bg-surface-3 transition-colors"
                     >
                       Select None
                     </button>
                     <button
                       type="button"
                       onClick={selectOdd}
-                      className="px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-800/50 text-sm hover:bg-zinc-700 transition-colors"
+                      className="px-3 py-1.5 rounded-lg border border-border-strong bg-surface-2 text-sm hover:bg-surface-3 transition-colors"
                     >
                       Odd Pages
                     </button>
                     <button
                       type="button"
                       onClick={selectEven}
-                      className="px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-800/50 text-sm hover:bg-zinc-700 transition-colors"
+                      className="px-3 py-1.5 rounded-lg border border-border-strong bg-surface-2 text-sm hover:bg-surface-3 transition-colors"
                     >
                       Even Pages
                     </button>
@@ -154,7 +154,7 @@ export default function ExtractPDFPage() {
                       value={pageSelection}
                       onChange={(e) => setPageSelection(e.target.value)}
                       placeholder="1, 3, 5-10, 15"
-                      className="bg-zinc-800 border-zinc-700"
+                      className="bg-surface-2 border-border-strong"
                     />
                   </OptionGroup>
 
@@ -171,10 +171,10 @@ export default function ExtractPDFPage() {
                             className={`aspect-[3/4] rounded-lg border flex flex-col items-center justify-center transition-all relative ${
                               isSelected
                                 ? "border-red-500 bg-red-500/20"
-                                : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                                : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                             }`}
                           >
-                            <FileText className={`h-4 w-4 mb-1 ${isSelected ? "text-red-500" : "text-zinc-500"}`} />
+                            <FileText className={`h-4 w-4 mb-1 ${isSelected ? "text-red-500" : "text-muted-foreground"}`} />
                             <span className={`text-xs font-medium ${isSelected ? "text-red-500" : ""}`}>{pageNum}</span>
                             {isSelected && (
                               <div className="absolute top-1 right-1">
@@ -188,12 +188,12 @@ export default function ExtractPDFPage() {
                   </OptionGroup>
 
                   {/* Selection summary */}
-                  <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-between text-sm">
-                    <span className="text-zinc-400">
+                  <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
                       {selectedPages.length} of {totalPages} pages selected
                     </span>
                     {selectedPages.length > 0 && (
-                      <span className="text-zinc-500">
+                      <span className="text-muted-foreground">
                         Pages: {selectedPages.join(", ")}
                       </span>
                     )}

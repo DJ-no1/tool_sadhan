@@ -169,29 +169,29 @@ export default function JPGToPDFPage() {
               onDragOver={handleDrag}
               onDrop={handleDrop}
               className={cn(
-                "relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 md:p-12 text-center transition-all cursor-pointer overflow-hidden",
+                "relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 md:p-12 text-center transition-all cursor-pointer overflow-hidden",
                 isDragging
                   ? "border-red-500 bg-red-500/10"
-                  : "border-zinc-700/50 bg-zinc-900/30 hover:border-zinc-600 hover:bg-zinc-900/50"
+                  : "border-border-strong/50 bg-surface/30 hover:border-border-strong hover:bg-surface"
               )}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-purple-500/5 pointer-events-none" />
               
               <div className="relative z-10">
                 <div className={cn(
-                  "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-colors",
-                  isDragging ? "bg-red-500/20" : "bg-zinc-800"
+                  "w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4 transition-colors",
+                  isDragging ? "bg-red-500/20" : "bg-surface-2"
                 )}>
                   <FileImage className={cn(
                     "h-8 w-8 transition-colors",
-                    isDragging ? "text-red-500" : "text-zinc-400"
+                    isDragging ? "text-red-500" : "text-muted-foreground"
                   )} />
                 </div>
                 
                 <h3 className="text-xl font-semibold mb-2">
                   {images.length > 0 ? "Add more images" : "Drop your images here"}
                 </h3>
-                <p className="text-sm text-zinc-400 mb-6">
+                <p className="text-sm text-muted-foreground mb-6">
                   JPG, PNG, GIF, WebP • Max 100MB per file
                 </p>
                 
@@ -204,7 +204,7 @@ export default function JPGToPDFPage() {
                   className="hidden"
                 />
                 
-                <Button asChild className="bg-red-500 hover:bg-red-600 text-white px-6">
+                <Button asChild className="bg-red-500 hover:bg-red-600 text-foreground px-6">
                   <label htmlFor="image-input" className="cursor-pointer">
                     Select Images
                   </label>
@@ -214,14 +214,14 @@ export default function JPGToPDFPage() {
 
             {/* Image Grid */}
             {images.length > 0 && (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+              <div className="rounded-lg border border-border bg-surface p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold">{images.length} Image{images.length > 1 ? "s" : ""}</h3>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setImages([])}
-                    className="text-zinc-400 hover:text-red-500"
+                    className="text-muted-foreground hover:text-red-500"
                   >
                     Clear all
                   </Button>
@@ -231,7 +231,7 @@ export default function JPGToPDFPage() {
                   {images.map((img, index) => (
                     <div
                       key={img.id}
-                      className="group relative rounded-xl border border-zinc-700 bg-zinc-800/50 overflow-hidden"
+                      className="group relative rounded-lg border border-border-strong bg-surface-2 overflow-hidden"
                     >
                       {/* Image Preview */}
                       <div className="aspect-square relative">
@@ -248,7 +248,7 @@ export default function JPGToPDFPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => rotateImage(img.id)}
-                            className="h-8 w-8 bg-zinc-800/80 text-white hover:bg-zinc-700"
+                            className="h-8 w-8 bg-surface-2/80 text-foreground hover:bg-surface-3"
                           >
                             <RotateCw className="h-4 w-4" />
                           </Button>
@@ -256,14 +256,14 @@ export default function JPGToPDFPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => removeImage(img.id)}
-                            className="h-8 w-8 bg-red-500/80 text-white hover:bg-red-600"
+                            className="h-8 w-8 bg-red-500/80 text-foreground hover:bg-red-600"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
 
                         {/* Order badge */}
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-zinc-900/90 text-xs font-medium">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-surface/90 text-xs font-medium">
                           {index + 1}
                         </div>
                       </div>
@@ -275,17 +275,17 @@ export default function JPGToPDFPage() {
                           size="icon"
                           disabled={index === 0}
                           onClick={() => moveImage(index, index - 1)}
-                          className="h-6 w-6 text-zinc-400 hover:text-white disabled:opacity-30"
+                          className="h-6 w-6 text-muted-foreground hover:text-foreground disabled:opacity-30"
                         >
                           ←
                         </Button>
-                        <GripVertical className="h-6 w-6 text-zinc-600" />
+                        <GripVertical className="h-6 w-6 text-muted-foreground" />
                         <Button
                           variant="ghost"
                           size="icon"
                           disabled={index === images.length - 1}
                           onClick={() => moveImage(index, index + 1)}
-                          className="h-6 w-6 text-zinc-400 hover:text-white disabled:opacity-30"
+                          className="h-6 w-6 text-muted-foreground hover:text-foreground disabled:opacity-30"
                         >
                           →
                         </Button>
@@ -305,7 +305,7 @@ export default function JPGToPDFPage() {
                       <OptionGroup title="Image Quality">
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-zinc-400">Quality: {imageQuality}%</span>
+                            <span className="text-sm text-muted-foreground">Quality: {imageQuality}%</span>
                           </div>
                           <Slider
                             value={[imageQuality]}
@@ -328,7 +328,7 @@ export default function JPGToPDFPage() {
                               className={`py-2 px-3 rounded-lg border text-sm font-medium capitalize transition-all ${
                                 orientation === o
                                   ? "border-red-500 bg-red-500/10 text-red-500"
-                                  : "border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600"
+                                  : "border-border-strong bg-surface-2 text-muted-foreground hover:border-border-strong"
                               }`}
                             >
                               {o}
@@ -347,14 +347,14 @@ export default function JPGToPDFPage() {
                           key={size.id}
                           type="button"
                           onClick={() => setPageSize(size.id)}
-                          className={`p-3 rounded-xl border text-left transition-all ${
+                          className={`p-3 rounded-lg border text-left transition-all ${
                             pageSize === size.id
                               ? "border-red-500 bg-red-500/10"
-                              : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                              : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                           }`}
                         >
                           <p className="font-medium">{size.name}</p>
-                          <p className="text-xs text-zinc-400">{size.desc}</p>
+                          <p className="text-xs text-muted-foreground">{size.desc}</p>
                         </button>
                       ))}
                     </div>
@@ -371,7 +371,7 @@ export default function JPGToPDFPage() {
                           className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
                             margin === m.id
                               ? "border-red-500 bg-red-500/10 text-red-500"
-                              : "border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600"
+                              : "border-border-strong bg-surface-2 text-muted-foreground hover:border-border-strong"
                           }`}
                         >
                           {m.name}

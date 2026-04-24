@@ -11,7 +11,7 @@ export function VideoConverterHowItWorks() {
               {index + 1}
             </div>
             <h3 className="text-lg font-medium">{step.title}</h3>
-            <p className="text-sm text-zinc-400">{step.description}</p>
+            <p className="text-sm text-muted-foreground">{step.description}</p>
           </div>
         ))}
       </div>

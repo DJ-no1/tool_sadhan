@@ -27,6 +27,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+export type CategoryAccent = "red" | "blue" | "purple";
+
 export interface Tool {
   id: string;
   name: string;
@@ -35,6 +37,9 @@ export interface Tool {
   icon: LucideIcon;
   category: string;
   subcategory?: string;
+  comingSoon?: boolean;
+  isPopular?: boolean;
+  isNew?: boolean;
 }
 
 export interface ToolSubcategory {
@@ -50,20 +55,21 @@ export interface ToolCategory {
   icon: LucideIcon;
   color: string;
   gradient: string;
+  accent: CategoryAccent;
   subcategories: ToolSubcategory[];
 }
 
 // PDF Tools
 const PDF_TOOLS: Tool[] = [
   // Organize PDF
-  { id: "pdf-merge", name: "Merge PDF", description: "Combine multiple PDFs into one", href: "/tools/pdf/merge", icon: Merge, category: "pdf", subcategory: "organize" },
-  { id: "pdf-split", name: "Split PDF", description: "Extract pages from PDF", href: "/tools/pdf/split", icon: Split, category: "pdf", subcategory: "organize" },
+  { id: "pdf-merge", name: "Merge PDF", description: "Combine multiple PDFs into one", href: "/tools/pdf/merge", icon: Merge, category: "pdf", subcategory: "organize", isPopular: true },
+  { id: "pdf-split", name: "Split PDF", description: "Extract pages from PDF", href: "/tools/pdf/split", icon: Split, category: "pdf", subcategory: "organize", isPopular: true },
   { id: "pdf-remove", name: "Remove Pages", description: "Delete pages from PDF", href: "/tools/pdf/remove", icon: Scissors, category: "pdf", subcategory: "organize" },
   { id: "pdf-extract", name: "Extract Pages", description: "Extract specific pages", href: "/tools/pdf/extract", icon: FileOutput, category: "pdf", subcategory: "organize" },
   { id: "pdf-organize", name: "Organize PDF", description: "Reorder PDF pages", href: "/tools/pdf/organize", icon: Layers, category: "pdf", subcategory: "organize" },
 
   // Optimize PDF
-  { id: "pdf-compress", name: "Compress PDF", description: "Reduce PDF file size", href: "/tools/pdf/compress", icon: Minimize2, category: "pdf", subcategory: "optimize" },
+  { id: "pdf-compress", name: "Compress PDF", description: "Reduce PDF file size", href: "/tools/pdf/compress", icon: Minimize2, category: "pdf", subcategory: "optimize", isPopular: true },
   { id: "pdf-repair", name: "Repair PDF", description: "Fix corrupted PDFs", href: "/tools/pdf/repair", icon: FileText, category: "pdf", subcategory: "optimize" },
 
   // Convert to PDF
@@ -73,7 +79,7 @@ const PDF_TOOLS: Tool[] = [
   { id: "ppt-to-pdf", name: "PowerPoint to PDF", description: "Convert PPT to PDF", href: "/tools/pdf/ppt-to-pdf", icon: FileText, category: "pdf", subcategory: "convert-to" },
 
   // Convert from PDF
-  { id: "pdf-to-jpg", name: "PDF to JPG", description: "Convert PDF to images", href: "/tools/pdf/pdf-to-jpg", icon: Image, category: "pdf", subcategory: "convert-from" },
+  { id: "pdf-to-jpg", name: "PDF to JPG", description: "Convert PDF to images", href: "/tools/pdf/pdf-to-jpg", icon: Image, category: "pdf", subcategory: "convert-from", isPopular: true },
   { id: "pdf-to-word", name: "PDF to Word", description: "Convert PDF to Word", href: "/tools/pdf/pdf-to-word", icon: FileText, category: "pdf", subcategory: "convert-from" },
   { id: "pdf-to-excel", name: "PDF to Excel", description: "Convert PDF to Excel", href: "/tools/pdf/pdf-to-excel", icon: FileText, category: "pdf", subcategory: "convert-from" },
   { id: "pdf-to-ppt", name: "PDF to PowerPoint", description: "Convert PDF to PPT", href: "/tools/pdf/pdf-to-ppt", icon: FileText, category: "pdf", subcategory: "convert-from" },
@@ -91,47 +97,39 @@ const PDF_TOOLS: Tool[] = [
   { id: "pdf-sign", name: "Sign PDF", description: "Add signature to PDF", href: "/tools/pdf/sign", icon: PenLine, category: "pdf", subcategory: "security" },
 ];
 
-// Image Tools
+// Image Tools — all pages are shipped; mark fresh arrivals with isNew.
 const IMAGE_TOOLS: Tool[] = [
-  // Resize & Crop
-  { id: "image-resize", name: "Resize Image", description: "Change image dimensions", href: "/tools/image/resize", icon: Maximize2, category: "image", subcategory: "resize" },
-  { id: "image-crop", name: "Crop Image", description: "Crop and trim images", href: "/tools/image/crop", icon: Crop, category: "image", subcategory: "resize" },
+  { id: "image-resize", name: "Resize Image", description: "Change image dimensions", href: "/tools/image/resize", icon: Maximize2, category: "image", subcategory: "resize", isNew: true },
+  { id: "image-crop", name: "Crop Image", description: "Crop and trim images", href: "/tools/image/crop", icon: Crop, category: "image", subcategory: "resize", isNew: true },
 
-  // Compress
-  { id: "image-compress", name: "Compress Image", description: "Reduce image file size", href: "/tools/image/compress", icon: Minimize2, category: "image", subcategory: "compress" },
-  { id: "image-compress-jpg", name: "Compress JPG", description: "Compress JPEG images", href: "/tools/image/compress-jpg", icon: ImageDown, category: "image", subcategory: "compress" },
-  { id: "image-compress-png", name: "Compress PNG", description: "Compress PNG images", href: "/tools/image/compress-png", icon: ImageDown, category: "image", subcategory: "compress" },
+  { id: "image-compress", name: "Compress Image", description: "Reduce image file size", href: "/tools/image/compress", icon: Minimize2, category: "image", subcategory: "compress", isPopular: true },
+  { id: "image-compress-jpg", name: "Compress JPG", description: "Compress JPEG images", href: "/tools/image/compress-jpg", icon: ImageDown, category: "image", subcategory: "compress", isNew: true },
+  { id: "image-compress-png", name: "Compress PNG", description: "Compress PNG images", href: "/tools/image/compress-png", icon: ImageDown, category: "image", subcategory: "compress", isNew: true },
 
-  // Convert
-  { id: "image-convert", name: "Convert Image", description: "Convert image formats", href: "/tools/image/convert", icon: FileOutput, category: "image", subcategory: "convert" },
-  { id: "jpg-to-png", name: "JPG to PNG", description: "Convert JPG to PNG", href: "/tools/image/jpg-to-png", icon: Image, category: "image", subcategory: "convert" },
-  { id: "png-to-jpg", name: "PNG to JPG", description: "Convert PNG to JPG", href: "/tools/image/png-to-jpg", icon: Image, category: "image", subcategory: "convert" },
-  { id: "webp-convert", name: "WebP Convert", description: "Convert to/from WebP", href: "/tools/image/webp", icon: Image, category: "image", subcategory: "convert" },
+  { id: "image-convert", name: "Convert Image", description: "Convert image formats", href: "/tools/image/convert", icon: FileOutput, category: "image", subcategory: "convert", isPopular: true },
+  { id: "jpg-to-png", name: "JPG to PNG", description: "Convert JPG to PNG", href: "/tools/image/jpg-to-png", icon: Image, category: "image", subcategory: "convert", isNew: true },
+  { id: "png-to-jpg", name: "PNG to JPG", description: "Convert PNG to JPG", href: "/tools/image/png-to-jpg", icon: Image, category: "image", subcategory: "convert", isNew: true },
+  { id: "webp-convert", name: "WebP Convert", description: "Convert to/from WebP", href: "/tools/image/webp", icon: Image, category: "image", subcategory: "convert", isNew: true },
 
-  // Edit
-  { id: "image-edit", name: "Edit Image", description: "Basic image editing", href: "/tools/image/edit", icon: PenLine, category: "image", subcategory: "edit" },
-  { id: "image-filters", name: "Image Filters", description: "Apply filters to images", href: "/tools/image/filters", icon: Palette, category: "image", subcategory: "edit" },
-  { id: "remove-bg", name: "Remove Background", description: "Remove image background", href: "/tools/image/remove-bg", icon: Eraser, category: "image", subcategory: "edit" },
+  { id: "image-edit", name: "Edit Image", description: "Basic image editing", href: "/tools/image/edit", icon: PenLine, category: "image", subcategory: "edit", isNew: true },
+  { id: "image-filters", name: "Image Filters", description: "Apply filters to images", href: "/tools/image/filters", icon: Palette, category: "image", subcategory: "edit", isNew: true },
+  { id: "remove-bg", name: "Remove Background", description: "Remove image background", href: "/tools/image/remove-bg", icon: Eraser, category: "image", subcategory: "edit", isPopular: true },
 ];
 
-// Video Tools
+// Video Tools — all pages are shipped.
 const VIDEO_TOOLS: Tool[] = [
-  // Convert
-  { id: "video-convert", name: "Video to JPG", description: "Extract frames as images", href: "/tools/video/convert", icon: Image, category: "video", subcategory: "convert" },
-  { id: "video-to-gif", name: "Video to GIF", description: "Convert video to GIF", href: "/tools/video/to-gif", icon: Play, category: "video", subcategory: "convert" },
-  { id: "video-to-mp4", name: "Convert to MP4", description: "Convert video to MP4", href: "/tools/video/to-mp4", icon: Film, category: "video", subcategory: "convert" },
+  { id: "video-convert", name: "Video to JPG", description: "Extract frames as images", href: "/tools/video/convert", icon: Image, category: "video", subcategory: "convert", isPopular: true },
+  { id: "video-to-gif", name: "Video to GIF", description: "Convert video to GIF", href: "/tools/video/to-gif", icon: Play, category: "video", subcategory: "convert", isNew: true },
+  { id: "video-to-mp4", name: "Convert to MP4", description: "Convert video to MP4", href: "/tools/video/to-mp4", icon: Film, category: "video", subcategory: "convert", isNew: true },
 
-  // Compress
-  { id: "video-compress", name: "Compress Video", description: "Reduce video file size", href: "/tools/video/compress", icon: Minimize2, category: "video", subcategory: "compress" },
+  { id: "video-compress", name: "Compress Video", description: "Reduce video file size", href: "/tools/video/compress", icon: Minimize2, category: "video", subcategory: "compress", isPopular: true },
 
-  // Edit
-  { id: "video-trim", name: "Trim Video", description: "Cut video segments", href: "/tools/video/trim", icon: Scissors, category: "video", subcategory: "edit" },
-  { id: "video-merge", name: "Merge Videos", description: "Combine multiple videos", href: "/tools/video/merge", icon: Merge, category: "video", subcategory: "edit" },
-  { id: "video-rotate", name: "Rotate Video", description: "Rotate video orientation", href: "/tools/video/rotate", icon: RotateCw, category: "video", subcategory: "edit" },
+  { id: "video-trim", name: "Trim Video", description: "Cut video segments", href: "/tools/video/trim", icon: Scissors, category: "video", subcategory: "edit", isNew: true },
+  { id: "video-merge", name: "Merge Videos", description: "Combine multiple videos", href: "/tools/video/merge", icon: Merge, category: "video", subcategory: "edit", isNew: true },
+  { id: "video-rotate", name: "Rotate Video", description: "Rotate video orientation", href: "/tools/video/rotate", icon: RotateCw, category: "video", subcategory: "edit", isNew: true },
 
-  // Extract
-  { id: "video-extract-audio", name: "Extract Audio", description: "Extract audio from video", href: "/tools/video/extract-audio", icon: Clapperboard, category: "video", subcategory: "extract" },
-  { id: "video-extract-frames", name: "Extract Frames", description: "Extract video frames", href: "/tools/video/extract-frames", icon: Timer, category: "video", subcategory: "extract" },
+  { id: "video-extract-audio", name: "Extract Audio", description: "Extract audio from video", href: "/tools/video/extract-audio", icon: Clapperboard, category: "video", subcategory: "extract", isNew: true },
+  { id: "video-extract-frames", name: "Extract Frames", description: "Extract video frames", href: "/tools/video/extract-frames", icon: Timer, category: "video", subcategory: "extract", isNew: true },
 ];
 
 export const TOOL_CATEGORIES: ToolCategory[] = [
@@ -142,6 +140,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
     icon: FileText,
     color: "text-red-500",
     gradient: "from-red-500/20 to-pink-500/20",
+    accent: "red",
     subcategories: [
       { id: "organize", name: "Organize PDF", tools: PDF_TOOLS.filter(t => t.subcategory === "organize") },
       { id: "optimize", name: "Optimize PDF", tools: PDF_TOOLS.filter(t => t.subcategory === "optimize") },
@@ -158,6 +157,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
     icon: Image,
     color: "text-blue-500",
     gradient: "from-blue-500/20 to-cyan-500/20",
+    accent: "blue",
     subcategories: [
       { id: "resize", name: "Resize & Crop", tools: IMAGE_TOOLS.filter(t => t.subcategory === "resize") },
       { id: "compress", name: "Compress", tools: IMAGE_TOOLS.filter(t => t.subcategory === "compress") },
@@ -172,6 +172,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
     icon: Video,
     color: "text-purple-500",
     gradient: "from-purple-500/20 to-violet-500/20",
+    accent: "purple",
     subcategories: [
       { id: "convert", name: "Convert", tools: VIDEO_TOOLS.filter(t => t.subcategory === "convert") },
       { id: "compress", name: "Compress", tools: VIDEO_TOOLS.filter(t => t.subcategory === "compress") },
@@ -186,3 +187,13 @@ export const TOOLS: Tool[] = [...PDF_TOOLS, ...IMAGE_TOOLS, ...VIDEO_TOOLS];
 export const getToolsByCategory = (categoryId: string) => {
   return TOOLS.filter((tool) => tool.category === categoryId);
 };
+
+export const getPopularTools = (limit = 8) => {
+  return TOOLS.filter((t) => t.isPopular && !t.comingSoon).slice(0, limit);
+};
+
+export const getLiveToolCount = () => {
+  return TOOLS.filter((t) => !t.comingSoon).length;
+};
+
+export const getTotalToolCount = () => TOOLS.length;

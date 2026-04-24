@@ -48,3 +48,9 @@ export interface VideoConverterStep {
     title: string;
     description: string;
 }
+
+export interface MemoryRisk {
+    estimatedMB: number;
+    risk: "low" | "medium" | "high" | "critical";
+    message: string;
+}

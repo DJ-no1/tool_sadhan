@@ -145,7 +145,7 @@ export default function CompressPDFPage() {
                       >
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-zinc-400">Quality: {imageQuality}%</span>
+                            <span className="text-sm text-muted-foreground">Quality: {imageQuality}%</span>
                           </div>
                           <Slider
                             value={[imageQuality]}
@@ -155,7 +155,7 @@ export default function CompressPDFPage() {
                             step={5}
                             className="w-full"
                           />
-                          <div className="flex justify-between text-xs text-zinc-500">
+                          <div className="flex justify-between text-xs text-muted-foreground">
                             <span>Lower quality / Smaller</span>
                             <span>Higher quality / Larger</span>
                           </div>
@@ -176,7 +176,7 @@ export default function CompressPDFPage() {
                               className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
                                 dpi === d
                                   ? "border-red-500 bg-red-500/10 text-red-500"
-                                  : "border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600"
+                                  : "border-border-strong bg-surface-2 text-muted-foreground hover:border-border-strong"
                               }`}
                             >
                               {d} DPI
@@ -193,11 +193,11 @@ export default function CompressPDFPage() {
                               type="checkbox"
                               checked={removeMetadata}
                               onChange={(e) => setRemoveMetadata(e.target.checked)}
-                              className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500 focus:ring-offset-0"
+                              className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500 focus:ring-offset-0"
                             />
                             <div>
-                              <span className="text-sm font-medium group-hover:text-white transition-colors">Remove metadata</span>
-                              <p className="text-xs text-zinc-500">Strip author, title, and other info</p>
+                              <span className="text-sm font-medium group-hover:text-foreground transition-colors">Remove metadata</span>
+                              <p className="text-xs text-muted-foreground">Strip author, title, and other info</p>
                             </div>
                           </label>
 
@@ -206,11 +206,11 @@ export default function CompressPDFPage() {
                               type="checkbox"
                               checked={linearize}
                               onChange={(e) => setLinearize(e.target.checked)}
-                              className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500 focus:ring-offset-0"
+                              className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500 focus:ring-offset-0"
                             />
                             <div>
-                              <span className="text-sm font-medium group-hover:text-white transition-colors">Optimize for web</span>
-                              <p className="text-xs text-zinc-500">Linearize PDF for fast web viewing</p>
+                              <span className="text-sm font-medium group-hover:text-foreground transition-colors">Optimize for web</span>
+                              <p className="text-xs text-muted-foreground">Linearize PDF for fast web viewing</p>
                             </div>
                           </label>
 
@@ -219,11 +219,11 @@ export default function CompressPDFPage() {
                               type="checkbox"
                               checked={grayscale}
                               onChange={(e) => setGrayscale(e.target.checked)}
-                              className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500 focus:ring-offset-0"
+                              className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500 focus:ring-offset-0"
                             />
                             <div>
-                              <span className="text-sm font-medium group-hover:text-white transition-colors">Convert to grayscale</span>
-                              <p className="text-xs text-zinc-500">Remove colors for smaller file size</p>
+                              <span className="text-sm font-medium group-hover:text-foreground transition-colors">Convert to grayscale</span>
+                              <p className="text-xs text-muted-foreground">Remove colors for smaller file size</p>
                             </div>
                           </label>
                         </div>
@@ -233,14 +233,14 @@ export default function CompressPDFPage() {
                 >
                   {/* Mode Selection */}
                   <div className="mb-6">
-                    <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-zinc-800/50">
+                    <div className="grid grid-cols-3 gap-2 p-1 rounded-lg bg-surface-2">
                       <button
                         type="button"
                         onClick={() => setMode("preset")}
                         className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                           mode === "preset"
-                            ? "bg-zinc-700 text-white"
-                            : "text-zinc-400 hover:text-white"
+                            ? "bg-surface-3 text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
                         Presets
@@ -250,8 +250,8 @@ export default function CompressPDFPage() {
                         onClick={() => setMode("size")}
                         className={`py-2 px-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                           mode === "size"
-                            ? "bg-zinc-700 text-white"
-                            : "text-zinc-400 hover:text-white"
+                            ? "bg-surface-3 text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
                         <HardDrive className="h-4 w-4" />
@@ -262,8 +262,8 @@ export default function CompressPDFPage() {
                         onClick={() => setMode("percentage")}
                         className={`py-2 px-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                           mode === "percentage"
-                            ? "bg-zinc-700 text-white"
-                            : "text-zinc-400 hover:text-white"
+                            ? "bg-surface-3 text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
                         <Percent className="h-4 w-4" />
@@ -282,21 +282,21 @@ export default function CompressPDFPage() {
                           onClick={() => setPreset(p.id)}
                         >
                           <div className="flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                              preset === p.id ? "bg-red-500/20" : "bg-zinc-800"
+                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                              preset === p.id ? "bg-red-500/20" : "bg-surface-2"
                             }`}>
                               <p.icon className={`h-6 w-6 ${
-                                preset === p.id ? "text-red-500" : "text-zinc-400"
+                                preset === p.id ? "text-red-500" : "text-muted-foreground"
                               }`} />
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center justify-between">
                                 <span className="font-medium">{p.name}</span>
                                 <span className={`text-sm ${
-                                  preset === p.id ? "text-red-400" : "text-zinc-500"
+                                  preset === p.id ? "text-red-400" : "text-muted-foreground"
                                 }`}>{p.reduction}</span>
                               </div>
-                              <p className="text-sm text-zinc-400">{p.description}</p>
+                              <p className="text-sm text-muted-foreground">{p.description}</p>
                             </div>
                           </div>
                         </OptionCard>
@@ -327,15 +327,15 @@ export default function CompressPDFPage() {
                               type="number"
                               value={targetSize}
                               onChange={(e) => setTargetSize(parseFloat(e.target.value) || 0.1)}
-                              className="w-20 bg-zinc-800 border-zinc-700"
+                              className="w-20 bg-surface-2 border-border-strong"
                               min={0.1}
                               max={50}
                               step={0.1}
                             />
-                            <span className="text-sm text-zinc-400">MB</span>
+                            <span className="text-sm text-muted-foreground">MB</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-zinc-500">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Settings2 className="h-4 w-4" />
                           <span>Current file: {(files[0]?.file.size / 1024 / 1024).toFixed(2)} MB</span>
                         </div>
@@ -352,7 +352,7 @@ export default function CompressPDFPage() {
                       <div className="space-y-4">
                         <div className="text-center">
                           <span className="text-5xl font-bold text-red-500">{targetPercentage}%</span>
-                          <p className="text-sm text-zinc-400 mt-2">smaller than original</p>
+                          <p className="text-sm text-muted-foreground mt-2">smaller than original</p>
                         </div>
                         <Slider
                           value={[targetPercentage]}
@@ -362,11 +362,11 @@ export default function CompressPDFPage() {
                           step={5}
                           className="w-full"
                         />
-                        <div className="flex justify-between text-xs text-zinc-500">
+                        <div className="flex justify-between text-xs text-muted-foreground">
                           <span>10%</span>
                           <span>90%</span>
                         </div>
-                        <div className="flex items-center justify-center gap-2 text-sm text-zinc-400 pt-2">
+                        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground pt-2">
                           <span>Estimated size:</span>
                           <span className="font-semibold text-green-500">
                             {((files[0]?.file.size || 0) * (1 - targetPercentage / 100) / 1024 / 1024).toFixed(2)} MB

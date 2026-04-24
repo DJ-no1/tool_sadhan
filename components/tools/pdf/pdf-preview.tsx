@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Grid, Maximize2, Loader2, FileText } from "lucide-react";
+import { Loader2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +23,6 @@ export function PDFPreview({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Create blob URL for the PDF file
   const loadPDF = useCallback(() => {
     if (!file) return;
 
@@ -31,12 +30,10 @@ export function PDFPreview({
     setError(null);
 
     try {
-      // Revoke previous URL if exists
       if (pdfUrl) {
         URL.revokeObjectURL(pdfUrl);
       }
 
-      // Create blob URL for the file
       const url = URL.createObjectURL(file);
       setPdfUrl(url);
       setIsLoading(false);
@@ -45,34 +42,46 @@ export function PDFPreview({
       setError("Failed to load PDF. Please try again.");
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
 
   useEffect(() => {
     loadPDF();
-
-    // Cleanup blob URL on unmount
     return () => {
       if (pdfUrl) {
         URL.revokeObjectURL(pdfUrl);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
 
   if (isLoading) {
     return (
-      <div className={cn("flex flex-col items-center justify-center py-12 rounded-2xl border border-zinc-800 bg-zinc-900/50", className)}>
-        <Loader2 className="h-8 w-8 animate-spin text-red-500 mb-4" />
-        <p className="text-zinc-400">Loading PDF...</p>
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center rounded-lg border border-[--border] bg-[--surface] py-12",
+          className,
+        )}
+      >
+        <Loader2 className="mb-3 h-5 w-5 animate-spin text-[--muted-foreground]" />
+        <p className="text-[13px] text-[--muted-foreground]">Loading PDF...</p>
       </div>
     );
   }
 
   if (error || !pdfUrl) {
     return (
-      <div className={cn("flex flex-col items-center justify-center py-12 rounded-2xl border border-zinc-800 bg-zinc-900/50", className)}>
-        <FileText className="h-12 w-12 text-zinc-600 mb-4" />
-        <p className="text-red-500 mb-4">{error || "Failed to load PDF"}</p>
-        <Button onClick={loadPDF} variant="outline">
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center rounded-lg border border-[--border] bg-[--surface] py-12",
+          className,
+        )}
+      >
+        <FileText className="mb-3 h-8 w-8 text-[--muted-foreground]" />
+        <p className="mb-3 text-[13px] text-red-500">
+          {error || "Failed to load PDF"}
+        </p>
+        <Button onClick={loadPDF} variant="outline" size="sm">
           Retry
         </Button>
       </div>
@@ -80,36 +89,38 @@ export function PDFPreview({
   }
 
   return (
-    <div className={cn("flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden", className)}>
-      {/* Toolbar */}
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-lg border border-[--border] bg-[--surface]",
+        className,
+      )}
+    >
       {showToolbar && (
-        <div className="flex items-center justify-between p-3 border-b border-zinc-800 bg-zinc-900">
+        <div className="flex items-center justify-between border-b border-[--border] bg-[--surface-2] p-3">
           <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-red-500" />
-            <span className="text-sm text-zinc-400 truncate max-w-[200px]">
+            <FileText className="h-3.5 w-3.5 text-red-500" />
+            <span className="max-w-[200px] truncate text-[13px] text-[--foreground]">
               {file.name}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
+          <div className="flex items-center gap-2 text-[11px] text-[--muted-foreground]">
             <span>{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-            <span>•</span>
+            <span>·</span>
             <span>Use browser controls to navigate</span>
           </div>
         </div>
       )}
 
-      {/* Native PDF Viewer using iframe */}
-      <div className="bg-zinc-950" style={{ height: "600px" }}>
+      <div className="bg-[--background]" style={{ height: "600px" }}>
         <iframe
           src={pdfUrl}
-          className="w-full h-full border-0"
+          className="h-full w-full border-0"
           title="PDF Preview"
         />
       </div>
 
-      {/* Footer hint */}
-      <div className="flex items-center justify-center gap-2 p-2 border-t border-zinc-800 bg-zinc-900/50 text-xs text-zinc-500">
-        <span>📄 Use the built-in PDF viewer controls to zoom, navigate pages, and more</span>
+      <div className="flex items-center justify-center gap-2 border-t border-[--border] bg-[--surface-2] p-2 text-[11px] text-[--muted-foreground]">
+        <span>Use the built-in PDF viewer controls to zoom and navigate</span>
       </div>
     </div>
   );

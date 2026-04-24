@@ -113,7 +113,7 @@ export default function RemovePDFPage() {
                             className={`aspect-[3/4] rounded-lg border flex flex-col items-center justify-center transition-all relative overflow-hidden ${
                               isMarkedForRemoval
                                 ? "border-red-500 bg-red-500/20"
-                                : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                                : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                             }`}
                           >
                             {isMarkedForRemoval && (
@@ -123,7 +123,7 @@ export default function RemovePDFPage() {
                                 </div>
                               </div>
                             )}
-                            <FileText className={`h-4 w-4 mb-1 ${isMarkedForRemoval ? "text-red-500" : "text-zinc-500"}`} />
+                            <FileText className={`h-4 w-4 mb-1 ${isMarkedForRemoval ? "text-red-500" : "text-muted-foreground"}`} />
                             <span className={`text-xs font-medium ${isMarkedForRemoval ? "text-red-500" : ""}`}>{pageNum}</span>
                             {isMarkedForRemoval && (
                               <div className="absolute top-1 right-1">
@@ -137,9 +137,9 @@ export default function RemovePDFPage() {
                   </OptionGroup>
 
                   {/* Summary */}
-                  <div className="mt-4 pt-4 border-t border-zinc-800">
+                  <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex items-center justify-between text-sm mb-4">
-                      <span className="text-zinc-400">
+                      <span className="text-muted-foreground">
                         Removing {pagesToRemove.length} page{pagesToRemove.length !== 1 ? "s" : ""}
                       </span>
                       <span className="text-green-500">
@@ -149,7 +149,7 @@ export default function RemovePDFPage() {
 
                     {pagesToRemove.length > 0 && (
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs text-zinc-500">Pages to remove:</span>
+                        <span className="text-xs text-muted-foreground">Pages to remove:</span>
                         {pagesToRemove.map((p) => (
                           <button
                             key={p}
@@ -167,7 +167,7 @@ export default function RemovePDFPage() {
                 </OptionsPanel>
 
                 {pagesToRemove.length > 0 && remainingPages < 1 && (
-                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center">
+                  <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-center">
                     <p className="text-red-400">You cannot remove all pages. At least one page must remain.</p>
                   </div>
                 )}

@@ -201,7 +201,7 @@ export default function SignPDFPage() {
             {files.length > 0 && (
               <>
                 {/* Signature Creation */}
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+                <div className="rounded-lg border border-border bg-surface p-6">
                   <h3 className="font-semibold mb-4">Create Your Signature</h3>
                   
                   {/* Mode Tabs */}
@@ -218,8 +218,8 @@ export default function SignPDFPage() {
                         className={cn(
                           "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all",
                           signMode === mode.id
-                            ? "bg-red-500 text-white"
-                            : "bg-zinc-800 text-zinc-400 hover:text-white"
+                            ? "bg-red-500 text-foreground"
+                            : "bg-surface-2 text-muted-foreground hover:text-foreground"
                         )}
                       >
                         <mode.icon className="h-4 w-4" />
@@ -231,7 +231,7 @@ export default function SignPDFPage() {
                   {/* Draw Mode */}
                   {signMode === "draw" && (
                     <div className="space-y-4">
-                      <div className="relative rounded-xl overflow-hidden">
+                      <div className="relative rounded-lg overflow-hidden">
                         <canvas
                           ref={canvasRef}
                           width={500}
@@ -240,14 +240,14 @@ export default function SignPDFPage() {
                           onMouseMove={draw}
                           onMouseUp={stopDrawing}
                           onMouseLeave={stopDrawing}
-                          className="w-full h-[200px] rounded-xl border border-zinc-700 cursor-crosshair bg-zinc-900"
+                          className="w-full h-[200px] rounded-lg border border-border-strong cursor-crosshair bg-surface"
                         />
                         <div className="absolute bottom-3 right-3 flex gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={clearCanvas}
-                            className="bg-zinc-800/80 hover:bg-zinc-700"
+                            className="bg-surface-2/80 hover:bg-surface-3"
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
                             Clear
@@ -262,7 +262,7 @@ export default function SignPDFPage() {
                           </Button>
                         </div>
                       </div>
-                      <p className="text-sm text-zinc-400 text-center">
+                      <p className="text-sm text-muted-foreground text-center">
                         Draw your signature using your mouse or touchpad
                       </p>
                     </div>
@@ -275,13 +275,13 @@ export default function SignPDFPage() {
                         value={textSignature}
                         onChange={(e) => setTextSignature(e.target.value)}
                         placeholder="Type your name"
-                        className="text-2xl py-6 bg-zinc-800 border-zinc-700 text-center"
+                        className="text-2xl py-6 bg-surface-2 border-border-strong text-center"
                         style={{ fontFamily: "cursive" }}
                       />
                       
                       {/* Font Size */}
                       <div className="flex items-center gap-4">
-                        <span className="text-sm text-zinc-400">Size:</span>
+                        <span className="text-sm text-muted-foreground">Size:</span>
                         <Slider
                           value={[fontSize]}
                           onValueChange={([v]) => setFontSize(v)}
@@ -290,11 +290,11 @@ export default function SignPDFPage() {
                           step={2}
                           className="flex-1"
                         />
-                        <span className="text-sm text-zinc-400 w-8">{fontSize}</span>
+                        <span className="text-sm text-muted-foreground w-8">{fontSize}</span>
                       </div>
 
                       {/* Preview */}
-                      <div className="p-4 rounded-xl bg-white min-h-[100px] flex items-center justify-center">
+                      <div className="p-4 rounded-lg bg-white min-h-[100px] flex items-center justify-center">
                         <span
                           style={{
                             fontFamily: "cursive",
@@ -323,9 +323,9 @@ export default function SignPDFPage() {
                   {/* Upload Mode */}
                   {signMode === "upload" && (
                     <div className="space-y-4">
-                      <div className="border-2 border-dashed border-zinc-700 rounded-xl p-8 text-center">
-                        <Upload className="h-10 w-10 mx-auto text-zinc-400 mb-4" />
-                        <p className="text-sm text-zinc-400 mb-4">
+                      <div className="border-2 border-dashed border-border-strong rounded-lg p-8 text-center">
+                        <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-sm text-muted-foreground mb-4">
                           Upload an image of your signature (PNG, JPG)
                         </p>
                         <input
@@ -343,7 +343,7 @@ export default function SignPDFPage() {
                       </div>
                       
                       {signature?.type === "image" && (
-                        <div className="p-4 rounded-xl bg-white flex items-center justify-center">
+                        <div className="p-4 rounded-lg bg-white flex items-center justify-center">
                           <img
                             src={signature.data}
                             alt="Signature"
@@ -357,7 +357,7 @@ export default function SignPDFPage() {
                   {/* Color Selection */}
                   {signMode !== "upload" && (
                     <div className="mt-6">
-                      <p className="text-sm text-zinc-400 mb-2">Signature Color</p>
+                      <p className="text-sm text-muted-foreground mb-2">Signature Color</p>
                       <div className="flex gap-2">
                         {colors.map((c) => (
                           <button
@@ -378,7 +378,7 @@ export default function SignPDFPage() {
 
                 {/* Signature Preview / Status */}
                 {signature && (
-                  <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-6">
+                  <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
                         <Check className="h-4 w-4 text-green-500" />
@@ -386,7 +386,7 @@ export default function SignPDFPage() {
                       <h3 className="font-semibold text-green-500">Signature Ready</h3>
                     </div>
                     
-                    <div className="bg-white rounded-xl p-4 flex items-center justify-center min-h-[80px]">
+                    <div className="bg-white rounded-lg p-4 flex items-center justify-center min-h-[80px]">
                       {signature.type === "draw" || signature.type === "image" ? (
                         <img
                           src={signature.data}
@@ -426,10 +426,10 @@ export default function SignPDFPage() {
                             type="button"
                             onClick={() => setSignaturePosition({ x: pos.x, y: pos.y })}
                             className={cn(
-                              "p-3 rounded-xl border text-sm transition-all",
+                              "p-3 rounded-lg border text-sm transition-all",
                               signaturePosition.x === pos.x && signaturePosition.y === pos.y
                                 ? "border-red-500 bg-red-500/10 text-red-500"
-                                : "border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600"
+                                : "border-border-strong bg-surface-2 text-muted-foreground hover:border-border-strong"
                             )}
                           >
                             {pos.label}
@@ -440,15 +440,15 @@ export default function SignPDFPage() {
 
                     <OptionGroup title="Page" className="mt-6">
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-zinc-400">Sign on page:</span>
+                        <span className="text-sm text-muted-foreground">Sign on page:</span>
                         <Input
                           type="number"
                           value={currentPage}
                           onChange={(e) => setCurrentPage(parseInt(e.target.value) || 1)}
                           min={1}
-                          className="w-20 bg-zinc-800 border-zinc-700"
+                          className="w-20 bg-surface-2 border-border-strong"
                         />
-                        <span className="text-sm text-zinc-400">(Last page = -1)</span>
+                        <span className="text-sm text-muted-foreground">(Last page = -1)</span>
                       </div>
                     </OptionGroup>
                   </OptionsPanel>

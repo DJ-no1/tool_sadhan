@@ -112,28 +112,28 @@ export default function ProtectPDFPage() {
                           <button
                             type="button"
                             onClick={() => setEncryptionLevel("128")}
-                            className={`p-4 rounded-xl border text-left transition-all ${
+                            className={`p-4 rounded-lg border text-left transition-all ${
                               encryptionLevel === "128"
                                 ? "border-red-500 bg-red-500/10"
-                                : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                                : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                             }`}
                           >
-                            <Shield className={`h-5 w-5 mb-2 ${encryptionLevel === "128" ? "text-red-500" : "text-zinc-400"}`} />
+                            <Shield className={`h-5 w-5 mb-2 ${encryptionLevel === "128" ? "text-red-500" : "text-muted-foreground"}`} />
                             <p className="font-medium">128-bit AES</p>
-                            <p className="text-xs text-zinc-400">Good compatibility</p>
+                            <p className="text-xs text-muted-foreground">Good compatibility</p>
                           </button>
                           <button
                             type="button"
                             onClick={() => setEncryptionLevel("256")}
-                            className={`p-4 rounded-xl border text-left transition-all ${
+                            className={`p-4 rounded-lg border text-left transition-all ${
                               encryptionLevel === "256"
                                 ? "border-red-500 bg-red-500/10"
-                                : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                                : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                             }`}
                           >
-                            <Shield className={`h-5 w-5 mb-2 ${encryptionLevel === "256" ? "text-red-500" : "text-zinc-400"}`} />
+                            <Shield className={`h-5 w-5 mb-2 ${encryptionLevel === "256" ? "text-red-500" : "text-muted-foreground"}`} />
                             <p className="font-medium">256-bit AES</p>
-                            <p className="text-xs text-zinc-400">Maximum security</p>
+                            <p className="text-xs text-muted-foreground">Maximum security</p>
                           </button>
                         </div>
                       </OptionGroup>
@@ -144,45 +144,45 @@ export default function ProtectPDFPage() {
                         description="Control what users can do with the PDF"
                       >
                         <div className="space-y-3">
-                          <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
+                          <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-lg hover:bg-surface-2 transition-colors">
                             <input
                               type="checkbox"
                               checked={allowPrinting}
                               onChange={(e) => setAllowPrinting(e.target.checked)}
-                              className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500 focus:ring-offset-0"
+                              className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500 focus:ring-offset-0"
                             />
-                            <Printer className="h-5 w-5 text-zinc-400" />
+                            <Printer className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <span className="font-medium group-hover:text-white transition-colors">Allow printing</span>
-                              <p className="text-xs text-zinc-500">Users can print the document</p>
+                              <span className="font-medium group-hover:text-foreground transition-colors">Allow printing</span>
+                              <p className="text-xs text-muted-foreground">Users can print the document</p>
                             </div>
                           </label>
 
-                          <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
+                          <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-lg hover:bg-surface-2 transition-colors">
                             <input
                               type="checkbox"
                               checked={allowCopying}
                               onChange={(e) => setAllowCopying(e.target.checked)}
-                              className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500 focus:ring-offset-0"
+                              className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500 focus:ring-offset-0"
                             />
-                            <Copy className="h-5 w-5 text-zinc-400" />
+                            <Copy className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <span className="font-medium group-hover:text-white transition-colors">Allow copying</span>
-                              <p className="text-xs text-zinc-500">Users can copy text and images</p>
+                              <span className="font-medium group-hover:text-foreground transition-colors">Allow copying</span>
+                              <p className="text-xs text-muted-foreground">Users can copy text and images</p>
                             </div>
                           </label>
 
-                          <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
+                          <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-lg hover:bg-surface-2 transition-colors">
                             <input
                               type="checkbox"
                               checked={allowEditing}
                               onChange={(e) => setAllowEditing(e.target.checked)}
-                              className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500 focus:ring-offset-0"
+                              className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500 focus:ring-offset-0"
                             />
-                            <Edit3 className="h-5 w-5 text-zinc-400" />
+                            <Edit3 className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <span className="font-medium group-hover:text-white transition-colors">Allow editing</span>
-                              <p className="text-xs text-zinc-500">Users can modify the document</p>
+                              <span className="font-medium group-hover:text-foreground transition-colors">Allow editing</span>
+                              <p className="text-xs text-muted-foreground">Users can modify the document</p>
                             </div>
                           </label>
                         </div>
@@ -202,12 +202,12 @@ export default function ProtectPDFPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Enter password"
-                          className="bg-zinc-800 border-zinc-700 pr-10"
+                          className="bg-surface-2 border-border-strong pr-10"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -219,7 +219,7 @@ export default function ProtectPDFPage() {
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Confirm password"
-                          className={`bg-zinc-800 border-zinc-700 ${
+                          className={`bg-surface-2 border-border-strong ${
                             confirmPassword && !passwordsMatch ? "border-red-500" : ""
                           }`}
                         />
@@ -239,12 +239,12 @@ export default function ProtectPDFPage() {
                                       : password.length >= 8
                                       ? "bg-yellow-500"
                                       : "bg-red-500"
-                                    : "bg-zinc-700"
+                                    : "bg-surface-3"
                                 }`}
                               />
                             ))}
                           </div>
-                          <p className="text-xs text-zinc-500">
+                          <p className="text-xs text-muted-foreground">
                             {password.length < 4 && "Password too short"}
                             {password.length >= 4 && password.length < 8 && "Weak password"}
                             {password.length >= 8 && password.length < 12 && "Good password"}
@@ -260,12 +260,12 @@ export default function ProtectPDFPage() {
                   </OptionGroup>
 
                   {/* Security summary */}
-                  <div className="mt-6 p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                  <div className="mt-6 p-4 rounded-lg bg-surface-2 border border-border-strong/50">
                     <div className="flex items-center gap-3 mb-3">
                       <Shield className="h-5 w-5 text-green-500" />
                       <span className="font-medium">Security Summary</span>
                     </div>
-                    <ul className="space-y-1 text-sm text-zinc-400">
+                    <ul className="space-y-1 text-sm text-muted-foreground">
                       <li>• {encryptionLevel}-bit AES encryption</li>
                       <li>• Printing: {allowPrinting ? "Allowed" : "Blocked"}</li>
                       <li>• Copying: {allowCopying ? "Allowed" : "Blocked"}</li>

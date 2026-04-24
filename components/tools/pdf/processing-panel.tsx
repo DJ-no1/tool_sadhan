@@ -1,8 +1,18 @@
 "use client";
 
-import { Loader2, CheckCircle2, XCircle, Download, FileText, RotateCcw } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Download,
+  FileText,
+  RotateCcw,
+  TrendingDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export type ProcessingStatus = "idle" | "processing" | "completed" | "error";
@@ -50,131 +60,148 @@ export function ProcessingPanel({
   if (status === "idle") return null;
 
   return (
-    <div
+    <Card
       className={cn(
-        "rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-all",
-        className
+        "relative overflow-hidden border-border bg-card p-6",
+        className,
       )}
     >
-      {/* Processing State */}
       {status === "processing" && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
+        <>
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-0.5 animate-shimmer"
+            aria-hidden="true"
+          />
+          <div className="space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-500/10 text-blue-400 ring-1 ring-inset ring-blue-500/20">
+                <Loader2 className="h-4 w-4 animate-spin" />
               </div>
-              <div className="absolute -inset-1 rounded-xl bg-blue-500/20 blur-xl animate-pulse" />
+              <div>
+                <h3 className="text-[14px] font-semibold text-foreground">
+                  Processing
+                </h3>
+                <p className="text-[13px] text-muted-foreground">
+                  {message || "Please wait while we process your file"}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold">Processing...</h3>
-              <p className="text-sm text-zinc-400">{message || "Please wait while we process your file"}</p>
+            <div className="space-y-2">
+              <Progress value={progress} className="h-1.5" />
+              <div className="flex items-center justify-between text-[12px] font-mono">
+                <span className="text-muted-foreground">
+                  {Math.round(progress)}% complete
+                </span>
+                <span className="text-muted-foreground">
+                  {progress < 100 ? "..." : "done"}
+                </span>
+              </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <Progress value={progress} className="h-2" />
-            <p className="text-sm text-zinc-500 text-right">{Math.round(progress)}%</p>
-          </div>
-        </div>
+        </>
       )}
 
-      {/* Completed State */}
       {status === "completed" && resultFile && (
         <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="h-6 w-6 text-green-500" />
-              </div>
-              <div className="absolute -inset-1 rounded-xl bg-green-500/20 blur-xl" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
+              <CheckCircle2 className="h-4 w-4" />
             </div>
-            <div>
-              <h3 className="font-semibold text-green-500">Complete!</h3>
-              <p className="text-sm text-zinc-400">{message || "Your file is ready to download"}</p>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-[14px] font-semibold text-foreground">
+                  Complete
+                </h3>
+                {savings && (
+                  <Badge className="border-transparent bg-emerald-500/15 text-[10px] font-medium uppercase tracking-wider text-emerald-400 hover:bg-emerald-500/20">
+                    <TrendingDown className="mr-1 h-3 w-3" />
+                    {savings}% smaller
+                  </Badge>
+                )}
+              </div>
+              <p className="text-[13px] text-muted-foreground">
+                {message || "Your file is ready to download"}
+              </p>
             </div>
           </div>
 
-          {/* Result Card */}
-          <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/50 p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-shrink-0 w-14 h-16 rounded-lg bg-gradient-to-br from-red-500/20 to-red-500/10 border border-red-500/20 flex items-center justify-center">
-                <FileText className="h-7 w-7 text-red-500" />
+          <div className="rounded-lg border border-border bg-surface-2 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-red-500/10 text-red-400 ring-1 ring-inset ring-red-500/20">
+                <FileText className="h-4 w-4" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{resultFile.name}</p>
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="text-zinc-400">{formatSize(resultFile.size)}</span>
-                  {savings && (
-                    <>
-                      <span className="text-zinc-600">•</span>
-                      <span className="text-green-500 font-medium">-{savings}% smaller</span>
-                    </>
-                  )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-medium text-foreground">
+                  {resultFile.name}
+                </p>
+                <div className="flex items-center gap-2 text-[12px]">
+                  <span className="font-mono text-muted-foreground">
+                    {formatSize(resultFile.size)}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Size Comparison */}
           {originalSize && savings && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-center">
-                <p className="text-sm text-zinc-500 mb-1">Original</p>
-                <p className="text-lg font-semibold text-zinc-400">{formatSize(originalSize)}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border border-border bg-surface-2 p-4">
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Original
+                </p>
+                <p className="font-mono text-lg font-semibold text-foreground">
+                  {formatSize(originalSize)}
+                </p>
               </div>
-              <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 text-center">
-                <p className="text-sm text-green-500/70 mb-1">Compressed</p>
-                <p className="text-lg font-semibold text-green-500">{formatSize(resultFile.size)}</p>
+              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-400/80">
+                  Optimized
+                </p>
+                <p className="font-mono text-lg font-semibold text-emerald-400">
+                  {formatSize(resultFile.size)}
+                </p>
               </div>
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex gap-3">
-            <Button
-              onClick={onDownload}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Download PDF
+          <div className="flex gap-2">
+            <Button onClick={onDownload} className="flex-1 gap-1.5">
+              <Download className="h-3.5 w-3.5" />
+              Download
             </Button>
-            <Button
-              variant="outline"
-              onClick={onReset}
-              className="gap-2"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Process Another
+            <Button variant="outline" onClick={onReset} className="gap-1.5">
+              <RotateCcw className="h-3.5 w-3.5" />
+              Process another
             </Button>
           </div>
         </div>
       )}
 
-      {/* Error State */}
       {status === "error" && (
         <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
-                <XCircle className="h-6 w-6 text-red-500" />
-              </div>
-              <div className="absolute -inset-1 rounded-xl bg-red-500/20 blur-xl" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-red-500/10 text-red-400 ring-1 ring-inset ring-red-500/20">
+              <XCircle className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-semibold text-red-500">Error</h3>
-              <p className="text-sm text-zinc-400">{message || "Something went wrong. Please try again."}</p>
+              <h3 className="text-[14px] font-semibold text-red-400">
+                Something went wrong
+              </h3>
+              <p className="text-[13px] text-muted-foreground">
+                {message || "An error occurred. Please try again."}
+              </p>
             </div>
           </div>
           <Button
             variant="outline"
             onClick={onReset}
-            className="w-full gap-2"
+            className="w-full gap-1.5"
           >
-            <RotateCcw className="h-4 w-4" />
-            Try Again
+            <RotateCcw className="h-3.5 w-3.5" />
+            Try again
           </Button>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

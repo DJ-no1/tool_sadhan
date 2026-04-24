@@ -8,7 +8,7 @@ export function VideoConverterFeatures() {
         const Icon = feature.icon;
 
         return (
-          <Card key={feature.title} className="border-zinc-800 bg-zinc-900/50">
+          <Card key={feature.title} className="border-border bg-surface">
             <CardHeader>
               <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400">
                 <Icon className="h-5 w-5" />
@@ -16,7 +16,7 @@ export function VideoConverterFeatures() {
               <CardTitle>{feature.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-zinc-400">{feature.description}</p>
+              <p className="text-sm text-muted-foreground">{feature.description}</p>
             </CardContent>
           </Card>
         );

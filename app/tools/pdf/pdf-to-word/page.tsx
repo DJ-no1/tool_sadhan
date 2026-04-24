@@ -116,11 +116,11 @@ export default function PDFToWordPage() {
                               type="checkbox"
                               checked={includeImages}
                               onChange={(e) => setIncludeImages(e.target.checked)}
-                              className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500"
+                              className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500"
                             />
                             <div className="flex items-center gap-2">
-                              <ImageIcon className="h-4 w-4 text-zinc-400" />
-                              <span className="group-hover:text-white transition-colors">
+                              <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                              <span className="group-hover:text-foreground transition-colors">
                                 Include images
                               </span>
                             </div>
@@ -131,11 +131,11 @@ export default function PDFToWordPage() {
                               type="checkbox"
                               checked={includeTables}
                               onChange={(e) => setIncludeTables(e.target.checked)}
-                              className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500"
+                              className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500"
                             />
                             <div className="flex items-center gap-2">
-                              <Table className="h-4 w-4 text-zinc-400" />
-                              <span className="group-hover:text-white transition-colors">
+                              <Table className="h-4 w-4 text-muted-foreground" />
+                              <span className="group-hover:text-foreground transition-colors">
                                 Preserve tables
                               </span>
                             </div>
@@ -145,18 +145,18 @@ export default function PDFToWordPage() {
 
                       {/* OCR Option */}
                       <OptionGroup title="OCR (Scanned PDFs)">
-                        <label className="flex items-start gap-3 cursor-pointer group p-4 rounded-xl border border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600">
+                        <label className="flex items-start gap-3 cursor-pointer group p-4 rounded-lg border border-border-strong/50 bg-surface-2/30 hover:border-border-strong">
                           <input
                             type="checkbox"
                             checked={ocrEnabled}
                             onChange={(e) => setOcrEnabled(e.target.checked)}
-                            className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500 mt-0.5"
+                            className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500 mt-0.5"
                           />
                           <div>
-                            <span className="font-medium group-hover:text-white transition-colors">
+                            <span className="font-medium group-hover:text-foreground transition-colors">
                               Enable OCR
                             </span>
-                            <p className="text-sm text-zinc-400 mt-1">
+                            <p className="text-sm text-muted-foreground mt-1">
                               Extract text from scanned documents and images. May increase processing time.
                             </p>
                           </div>
@@ -174,14 +174,14 @@ export default function PDFToWordPage() {
                           type="button"
                           onClick={() => setFormat(f.id)}
                           className={cn(
-                            "p-3 rounded-xl border text-center transition-all",
+                            "p-3 rounded-lg border text-center transition-all",
                             format === f.id
                               ? "border-red-500 bg-red-500/10"
-                              : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                              : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                           )}
                         >
                           <p className="font-semibold">.{f.id.toUpperCase()}</p>
-                          <p className="text-xs text-zinc-400">{f.desc}</p>
+                          <p className="text-xs text-muted-foreground">{f.desc}</p>
                         </button>
                       ))}
                     </div>
@@ -196,21 +196,21 @@ export default function PDFToWordPage() {
                           type="button"
                           onClick={() => setMode(m.id)}
                           className={cn(
-                            "w-full p-4 rounded-xl border text-left flex items-center gap-4 transition-all",
+                            "w-full p-4 rounded-lg border text-left flex items-center gap-4 transition-all",
                             mode === m.id
                               ? "border-red-500 bg-red-500/10"
-                              : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                              : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                           )}
                         >
                           <div className={cn(
                             "w-10 h-10 rounded-lg flex items-center justify-center",
-                            mode === m.id ? "bg-red-500/20" : "bg-zinc-800"
+                            mode === m.id ? "bg-red-500/20" : "bg-surface-2"
                           )}>
-                            <m.icon className={cn("h-5 w-5", mode === m.id ? "text-red-500" : "text-zinc-400")} />
+                            <m.icon className={cn("h-5 w-5", mode === m.id ? "text-red-500" : "text-muted-foreground")} />
                           </div>
                           <div>
                             <p className="font-medium">{m.name}</p>
-                            <p className="text-sm text-zinc-400">{m.desc}</p>
+                            <p className="text-sm text-muted-foreground">{m.desc}</p>
                           </div>
                         </button>
                       ))}

@@ -89,7 +89,7 @@ export default function UnlockPDFPage() {
             {files.length > 0 && (
               <>
                 {/* Detection Status */}
-                <div className={`rounded-2xl border p-6 ${
+                <div className={`rounded-lg border p-6 ${
                   isPasswordProtected 
                     ? "border-yellow-500/30 bg-yellow-500/5" 
                     : "border-green-500/30 bg-green-500/5"
@@ -104,7 +104,7 @@ export default function UnlockPDFPage() {
                       <h3 className={`font-semibold ${isPasswordProtected ? "text-yellow-500" : "text-green-500"}`}>
                         {isPasswordProtected ? "Password Protected PDF Detected" : "PDF is Not Protected"}
                       </h3>
-                      <p className="text-sm text-zinc-400 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         {isPasswordProtected 
                           ? "This PDF requires a password to open. Enter the password below to unlock it."
                           : "This PDF doesn't have password protection. No action needed!"}
@@ -120,24 +120,24 @@ export default function UnlockPDFPage() {
                       description="Enter the password used to protect this PDF"
                     >
                       <div className="relative">
-                        <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+                        <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                           type="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Enter PDF password"
-                          className="bg-zinc-800 border-zinc-700 pl-10"
+                          className="bg-surface-2 border-border-strong pl-10"
                         />
                       </div>
-                      <p className="text-xs text-zinc-500 mt-2">
+                      <p className="text-xs text-muted-foreground mt-2">
                         We will remove the password protection and create an unlocked copy.
                       </p>
                     </OptionGroup>
 
                     {/* Info box */}
-                    <div className="mt-6 p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                    <div className="mt-6 p-4 rounded-lg bg-surface-2 border border-border-strong/50">
                       <h4 className="font-medium mb-2 text-sm">Important Information</h4>
-                      <ul className="space-y-1 text-xs text-zinc-400">
+                      <ul className="space-y-1 text-xs text-muted-foreground">
                         <li>• You must know the correct password to unlock the PDF</li>
                         <li>• The original file will not be modified</li>
                         <li>• All content and formatting will be preserved</li>

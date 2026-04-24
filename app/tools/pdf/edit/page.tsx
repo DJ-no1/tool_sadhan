@@ -120,7 +120,7 @@ export default function EditPDFPage() {
             {files.length > 0 && (
               <>
                 {/* Toolbar */}
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <div className="rounded-lg border border-border bg-surface p-4">
                   <div className="flex flex-wrap items-center gap-2 mb-4">
                     {tools.map((tool) => (
                       <button
@@ -129,10 +129,10 @@ export default function EditPDFPage() {
                         onClick={() => setCurrentTool(tool.id)}
                         title={tool.desc}
                         className={cn(
-                          "p-3 rounded-xl border transition-all flex items-center gap-2",
+                          "p-3 rounded-lg border transition-all flex items-center gap-2",
                           currentTool === tool.id
                             ? "border-red-500 bg-red-500/10 text-red-500"
-                            : "border-zinc-700/50 bg-zinc-800/30 text-zinc-400 hover:text-white hover:border-zinc-600"
+                            : "border-border-strong/50 bg-surface-2/30 text-muted-foreground hover:text-foreground hover:border-border-strong"
                         )}
                       >
                         <tool.icon className="h-5 w-5" />
@@ -141,22 +141,22 @@ export default function EditPDFPage() {
                     ))}
 
                     {/* Divider */}
-                    <div className="h-10 w-px bg-zinc-700 mx-2" />
+                    <div className="h-10 w-px bg-surface-3 mx-2" />
 
                     {/* Undo/Redo */}
-                    <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                       <Undo className="h-5 w-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                       <Redo className="h-5 w-5" />
                     </Button>
                   </div>
 
                   {/* Tool Options */}
-                  <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-zinc-800">
+                  <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-border">
                     {/* Color Picker */}
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-zinc-400">Color:</span>
+                      <span className="text-sm text-muted-foreground">Color:</span>
                       <div className="flex gap-1">
                         {colors.map((c) => (
                           <button
@@ -176,7 +176,7 @@ export default function EditPDFPage() {
                     {/* Brush Size (for draw tool) */}
                     {(currentTool === "draw" || currentTool === "eraser") && (
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-zinc-400">Size:</span>
+                        <span className="text-sm text-muted-foreground">Size:</span>
                         <Slider
                           value={[brushSize]}
                           onValueChange={([v]) => setBrushSize(v)}
@@ -192,7 +192,7 @@ export default function EditPDFPage() {
                     {/* Font Size (for text tool) */}
                     {currentTool === "text" && (
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-zinc-400">Font:</span>
+                        <span className="text-sm text-muted-foreground">Font:</span>
                         <Slider
                           value={[fontSize]}
                           onValueChange={([v]) => setFontSize(v)}
@@ -218,7 +218,7 @@ export default function EditPDFPage() {
 
                 {/* Annotations List */}
                 {annotations.length > 0 && (
-                  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                  <div className="rounded-lg border border-border bg-surface p-4">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-semibold">Annotations ({annotations.length})</h3>
                       <Button
@@ -234,14 +234,14 @@ export default function EditPDFPage() {
                       {annotations.map((ann) => (
                         <div
                           key={ann.id}
-                          className="flex items-center justify-between p-2 rounded-lg bg-zinc-800/50"
+                          className="flex items-center justify-between p-2 rounded-lg bg-surface-2"
                         >
                           <span className="text-sm capitalize">{ann.type}</span>
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => setAnnotations(annotations.filter((a) => a.id !== ann.id))}
-                            className="h-6 w-6 text-zinc-400 hover:text-red-500"
+                            className="h-6 w-6 text-muted-foreground hover:text-red-500"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>

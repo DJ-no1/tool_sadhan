@@ -128,7 +128,7 @@ export default function PageNumbersPDFPage() {
                             step={1}
                             className="flex-1"
                           />
-                          <span className="text-sm text-zinc-400 w-12">{fontSize}pt</span>
+                          <span className="text-sm text-muted-foreground w-12">{fontSize}pt</span>
                         </div>
                       </OptionGroup>
 
@@ -143,7 +143,7 @@ export default function PageNumbersPDFPage() {
                             step={5}
                             className="flex-1"
                           />
-                          <span className="text-sm text-zinc-400 w-12">{margin}px</span>
+                          <span className="text-sm text-muted-foreground w-12">{margin}px</span>
                         </div>
                       </OptionGroup>
 
@@ -165,7 +165,7 @@ export default function PageNumbersPDFPage() {
                             type="color"
                             value={color}
                             onChange={(e) => setColor(e.target.value)}
-                            className="w-10 h-10 p-1 bg-zinc-800 border-zinc-700 cursor-pointer"
+                            className="w-10 h-10 p-1 bg-surface-2 border-border-strong cursor-pointer"
                           />
                         </div>
                       </OptionGroup>
@@ -177,9 +177,9 @@ export default function PageNumbersPDFPage() {
                             type="checkbox"
                             checked={skipFirst}
                             onChange={(e) => setSkipFirst(e.target.checked)}
-                            className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500"
+                            className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500"
                           />
-                          <span className="text-sm group-hover:text-white transition-colors">
+                          <span className="text-sm group-hover:text-foreground transition-colors">
                             Skip first page (title page)
                           </span>
                         </label>
@@ -197,13 +197,13 @@ export default function PageNumbersPDFPage() {
                             key={pos.id}
                             type="button"
                             onClick={() => setPosition(pos.id)}
-                            className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all ${
+                            className={`p-3 rounded-lg border flex flex-col items-center gap-2 transition-all ${
                               position === pos.id
                                 ? "border-red-500 bg-red-500/10"
-                                : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                                : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                             }`}
                           >
-                            <AlignIcon className={`h-4 w-4 ${position === pos.id ? "text-red-500" : "text-zinc-400"}`} />
+                            <AlignIcon className={`h-4 w-4 ${position === pos.id ? "text-red-500" : "text-muted-foreground"}`} />
                             <span className="text-xs">{pos.label}</span>
                           </button>
                         );
@@ -219,14 +219,14 @@ export default function PageNumbersPDFPage() {
                           key={f.id}
                           type="button"
                           onClick={() => setFormat(f.id)}
-                          className={`p-3 rounded-xl border text-left transition-all ${
+                          className={`p-3 rounded-lg border text-left transition-all ${
                             format === f.id
                               ? "border-red-500 bg-red-500/10"
-                              : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                              : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                           }`}
                         >
                           <p className="font-medium font-mono">{f.id}</p>
-                          <p className="text-xs text-zinc-400">{f.example}</p>
+                          <p className="text-xs text-muted-foreground">{f.example}</p>
                         </button>
                       ))}
                     </div>
@@ -240,9 +240,9 @@ export default function PageNumbersPDFPage() {
                         value={startNumber}
                         onChange={(e) => setStartNumber(parseInt(e.target.value) || 1)}
                         min={1}
-                        className="w-24 bg-zinc-800 border-zinc-700"
+                        className="w-24 bg-surface-2 border-border-strong"
                       />
-                      <span className="text-sm text-zinc-400">
+                      <span className="text-sm text-muted-foreground">
                         First page will be numbered as {startNumber}
                       </span>
                     </div>

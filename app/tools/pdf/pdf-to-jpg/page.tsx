@@ -112,7 +112,7 @@ export default function PDFToJPGPage() {
                       >
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-zinc-400">Quality: {quality}%</span>
+                            <span className="text-sm text-muted-foreground">Quality: {quality}%</span>
                           </div>
                           <Slider
                             value={[quality]}
@@ -139,14 +139,14 @@ export default function PDFToJPGPage() {
                               className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
                                 dpi === d
                                   ? "border-red-500 bg-red-500/10 text-red-500"
-                                  : "border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600"
+                                  : "border-border-strong bg-surface-2 text-muted-foreground hover:border-border-strong"
                               }`}
                             >
                               {d}
                             </button>
                           ))}
                         </div>
-                        <p className="text-xs text-zinc-500 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2">
                           72 DPI = web • 150 DPI = print • 300+ DPI = high quality print
                         </p>
                       </OptionGroup>
@@ -161,14 +161,14 @@ export default function PDFToJPGPage() {
                           key={f.id}
                           type="button"
                           onClick={() => setFormat(f.id)}
-                          className={`p-4 rounded-xl border text-center transition-all ${
+                          className={`p-4 rounded-lg border text-center transition-all ${
                             format === f.id
                               ? "border-red-500 bg-red-500/10"
-                              : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                              : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                           }`}
                         >
                           <p className="font-semibold text-lg">.{f.id.toUpperCase()}</p>
-                          <p className="text-xs text-zinc-400">{f.desc}</p>
+                          <p className="text-xs text-muted-foreground">{f.desc}</p>
                         </button>
                       ))}
                     </div>
@@ -180,39 +180,39 @@ export default function PDFToJPGPage() {
                       <button
                         type="button"
                         onClick={() => setMode("all")}
-                        className={`w-full p-4 rounded-xl border text-left flex items-center gap-4 transition-all ${
+                        className={`w-full p-4 rounded-lg border text-left flex items-center gap-4 transition-all ${
                           mode === "all"
                             ? "border-red-500 bg-red-500/10"
-                            : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                            : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                         }`}
                       >
-                        <Grid className={`h-5 w-5 ${mode === "all" ? "text-red-500" : "text-zinc-400"}`} />
+                        <Grid className={`h-5 w-5 ${mode === "all" ? "text-red-500" : "text-muted-foreground"}`} />
                         <div>
                           <p className="font-medium">All Pages</p>
-                          <p className="text-sm text-zinc-400">Convert every page to an image</p>
+                          <p className="text-sm text-muted-foreground">Convert every page to an image</p>
                         </div>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setMode("range")}
-                        className={`w-full p-4 rounded-xl border text-left flex items-center gap-4 transition-all ${
+                        className={`w-full p-4 rounded-lg border text-left flex items-center gap-4 transition-all ${
                           mode === "range"
                             ? "border-red-500 bg-red-500/10"
-                            : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                            : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                         }`}
                       >
-                        <Layers className={`h-5 w-5 ${mode === "range" ? "text-red-500" : "text-zinc-400"}`} />
+                        <Layers className={`h-5 w-5 ${mode === "range" ? "text-red-500" : "text-muted-foreground"}`} />
                         <div className="flex-1">
                           <p className="font-medium">Page Range</p>
-                          <p className="text-sm text-zinc-400">Select specific pages</p>
+                          <p className="text-sm text-muted-foreground">Select specific pages</p>
                         </div>
                         {mode === "range" && (
                           <Input
                             value={pageRange}
                             onChange={(e) => setPageRange(e.target.value)}
                             placeholder="1-5, 10"
-                            className="w-28 bg-zinc-800 border-zinc-700"
+                            className="w-28 bg-surface-2 border-border-strong"
                             onClick={(e) => e.stopPropagation()}
                           />
                         )}
@@ -221,16 +221,16 @@ export default function PDFToJPGPage() {
                       <button
                         type="button"
                         onClick={() => setMode("single")}
-                        className={`w-full p-4 rounded-xl border text-left flex items-center gap-4 transition-all ${
+                        className={`w-full p-4 rounded-lg border text-left flex items-center gap-4 transition-all ${
                           mode === "single"
                             ? "border-red-500 bg-red-500/10"
-                            : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                            : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                         }`}
                       >
-                        <FileText className={`h-5 w-5 ${mode === "single" ? "text-red-500" : "text-zinc-400"}`} />
+                        <FileText className={`h-5 w-5 ${mode === "single" ? "text-red-500" : "text-muted-foreground"}`} />
                         <div className="flex-1">
                           <p className="font-medium">Single Page</p>
-                          <p className="text-sm text-zinc-400">Convert one page only</p>
+                          <p className="text-sm text-muted-foreground">Convert one page only</p>
                         </div>
                         {mode === "single" && (
                           <Input
@@ -238,7 +238,7 @@ export default function PDFToJPGPage() {
                             value={singlePage}
                             onChange={(e) => setSinglePage(parseInt(e.target.value) || 1)}
                             min={1}
-                            className="w-20 bg-zinc-800 border-zinc-700"
+                            className="w-20 bg-surface-2 border-border-strong"
                             onClick={(e) => e.stopPropagation()}
                           />
                         )}

@@ -107,17 +107,17 @@ export default function WordToPDFPage() {
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
-              className="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-700/50 bg-zinc-900/30 p-8 md:p-12 text-center transition-all cursor-pointer hover:border-zinc-600 hover:bg-zinc-900/50 overflow-hidden"
+              className="relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-strong/50 bg-surface/30 p-8 md:p-12 text-center transition-all cursor-pointer hover:border-border-strong hover:bg-surface overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
               
               <div className="relative z-10">
-                <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 rounded-lg bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
                   <FileText className="h-8 w-8 text-blue-500" />
                 </div>
                 
                 <h3 className="text-xl font-semibold mb-2">Drop your Word documents here</h3>
-                <p className="text-sm text-zinc-400 mb-6">
+                <p className="text-sm text-muted-foreground mb-6">
                   DOC, DOCX, ODT • Max 50MB per file
                 </p>
                 
@@ -132,7 +132,7 @@ export default function WordToPDFPage() {
                 
                 <label
                   htmlFor="doc-input"
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-medium cursor-pointer transition-colors"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-foreground font-medium cursor-pointer transition-colors"
                 >
                   Select Word Files
                 </label>
@@ -141,17 +141,17 @@ export default function WordToPDFPage() {
 
             {/* File List */}
             {files.length > 0 && (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+              <div className="rounded-lg border border-border bg-surface p-4">
                 <h3 className="font-semibold mb-3">{files.length} document{files.length > 1 ? "s" : ""}</h3>
                 <div className="space-y-2">
                   {files.map((f) => (
                     <div
                       key={f.id}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50"
+                      className="flex items-center gap-3 p-3 rounded-lg bg-surface-2"
                     >
                       <FileText className="h-5 w-5 text-blue-500" />
                       <span className="flex-1 truncate">{f.file.name}</span>
-                      <span className="text-sm text-zinc-400">
+                      <span className="text-sm text-muted-foreground">
                         {(f.file.size / 1024 / 1024).toFixed(2)} MB
                       </span>
                     </div>
@@ -170,13 +170,13 @@ export default function WordToPDFPage() {
                           type="checkbox"
                           checked={createOutline}
                           onChange={(e) => setCreateOutline(e.target.checked)}
-                          className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500"
+                          className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500"
                         />
                         <div>
-                          <span className="group-hover:text-white transition-colors">
+                          <span className="group-hover:text-foreground transition-colors">
                             Create PDF outline from headings
                           </span>
-                          <p className="text-xs text-zinc-500">Generate clickable table of contents</p>
+                          <p className="text-xs text-muted-foreground">Generate clickable table of contents</p>
                         </div>
                       </label>
                     </div>
@@ -191,14 +191,14 @@ export default function WordToPDFPage() {
                           type="button"
                           onClick={() => setQuality(q.id)}
                           className={cn(
-                            "p-3 rounded-xl border text-center transition-all",
+                            "p-3 rounded-lg border text-center transition-all",
                             quality === q.id
                               ? "border-red-500 bg-red-500/10"
-                              : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                              : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                           )}
                         >
                           <p className="font-medium">{q.name}</p>
-                          <p className="text-xs text-zinc-400">{q.desc}</p>
+                          <p className="text-xs text-muted-foreground">{q.desc}</p>
                         </button>
                       ))}
                     </div>
@@ -212,9 +212,9 @@ export default function WordToPDFPage() {
                           type="checkbox"
                           checked={preserveLinks}
                           onChange={(e) => setPreserveLinks(e.target.checked)}
-                          className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500"
+                          className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500"
                         />
-                        <span className="group-hover:text-white transition-colors">
+                        <span className="group-hover:text-foreground transition-colors">
                           Preserve hyperlinks
                         </span>
                       </label>
@@ -224,9 +224,9 @@ export default function WordToPDFPage() {
                           type="checkbox"
                           checked={preserveBookmarks}
                           onChange={(e) => setPreserveBookmarks(e.target.checked)}
-                          className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500"
+                          className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500"
                         />
-                        <span className="group-hover:text-white transition-colors">
+                        <span className="group-hover:text-foreground transition-colors">
                           Preserve bookmarks
                         </span>
                       </label>

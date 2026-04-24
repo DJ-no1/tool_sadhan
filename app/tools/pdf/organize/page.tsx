@@ -127,10 +127,10 @@ export default function OrganizePDFPage() {
             {files.length > 0 && pages.length > 0 && (
               <>
                 {/* Page Grid */}
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+                <div className="rounded-lg border border-border bg-surface p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold">Pages ({visiblePages.length} of {pages.length})</h3>
-                    <span className="text-sm text-zinc-400">
+                    <span className="text-sm text-muted-foreground">
                       Drag to reorder • Click icons to edit
                     </span>
                   </div>
@@ -139,10 +139,10 @@ export default function OrganizePDFPage() {
                     {pages.map((page, index) => (
                       <div
                         key={page.id}
-                        className={`group relative rounded-xl border transition-all ${
+                        className={`group relative rounded-lg border transition-all ${
                           page.visible 
-                            ? "border-zinc-700 bg-zinc-800/50 hover:border-zinc-600" 
-                            : "border-zinc-800 bg-zinc-900/50 opacity-50"
+                            ? "border-border-strong bg-surface-2 hover:border-border-strong" 
+                            : "border-border bg-surface opacity-50"
                         }`}
                       >
                         {/* Page Preview */}
@@ -153,16 +153,16 @@ export default function OrganizePDFPage() {
                             className="flex items-center justify-center"
                             style={{ transform: `rotate(${page.rotation}deg)` }}
                           >
-                            <FileText className="h-8 w-8 text-zinc-500" />
+                            <FileText className="h-8 w-8 text-muted-foreground" />
                           </div>
                           
                           {/* Drag handle overlay */}
                           <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <GripVertical className="h-6 w-6 text-white" />
+                            <GripVertical className="h-6 w-6 text-foreground" />
                           </div>
 
                           {/* Page number badge */}
-                          <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-zinc-900/80 text-xs font-medium">
+                          <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-surface/80 text-xs font-medium">
                             {page.pageNum}
                           </div>
                         </div>
@@ -175,7 +175,7 @@ export default function OrganizePDFPage() {
                               size="icon"
                               disabled={index === 0}
                               onClick={() => movePage(index, index - 1)}
-                              className="h-6 w-6 text-zinc-400 hover:text-white disabled:opacity-30"
+                              className="h-6 w-6 text-muted-foreground hover:text-foreground disabled:opacity-30"
                             >
                               ↑
                             </Button>
@@ -184,7 +184,7 @@ export default function OrganizePDFPage() {
                               size="icon"
                               disabled={index === pages.length - 1}
                               onClick={() => movePage(index, index + 1)}
-                              className="h-6 w-6 text-zinc-400 hover:text-white disabled:opacity-30"
+                              className="h-6 w-6 text-muted-foreground hover:text-foreground disabled:opacity-30"
                             >
                               ↓
                             </Button>
@@ -194,7 +194,7 @@ export default function OrganizePDFPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => rotatePage(page.id)}
-                              className="h-6 w-6 text-zinc-400 hover:text-white"
+                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
                               title="Rotate"
                             >
                               ↻
@@ -203,7 +203,7 @@ export default function OrganizePDFPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => togglePageVisibility(page.id)}
-                              className={`h-6 w-6 ${page.visible ? "text-zinc-400 hover:text-white" : "text-red-500"}`}
+                              className={`h-6 w-6 ${page.visible ? "text-muted-foreground hover:text-foreground" : "text-red-500"}`}
                               title={page.visible ? "Hide" : "Show"}
                             >
                               {page.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
@@ -212,7 +212,7 @@ export default function OrganizePDFPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => deletePage(page.id)}
-                              className="h-6 w-6 text-zinc-400 hover:text-red-500"
+                              className="h-6 w-6 text-muted-foreground hover:text-red-500"
                               title="Delete"
                             >
                               <Trash2 className="h-3 w-3" />
@@ -224,15 +224,15 @@ export default function OrganizePDFPage() {
                   </div>
 
                   {/* Summary */}
-                  <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-between text-sm">
-                    <span className="text-zinc-400">
+                  <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
                       {pages.filter(p => p.rotation !== 0).length} rotated • {pages.filter(p => !p.visible).length} hidden
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setPages(pages.map(p => ({ ...p, visible: true, rotation: 0 })))}
-                      className="text-zinc-400 hover:text-white"
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       Reset all
                     </Button>

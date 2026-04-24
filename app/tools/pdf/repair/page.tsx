@@ -187,14 +187,14 @@ export default function RepairPDFPage() {
             {files.length > 0 && scanComplete && (
               <>
                 {/* Scan Results */}
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+                <div className="rounded-lg border border-border bg-surface p-6">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
                       <AlertCircle className="h-5 w-5 text-yellow-500" />
                     </div>
                     <div>
                       <h3 className="font-semibold">Scan Complete</h3>
-                      <p className="text-sm text-zinc-400">
+                      <p className="text-sm text-muted-foreground">
                         Found {issues.length} issue{issues.length !== 1 ? "s" : ""} that can be repaired
                       </p>
                     </div>
@@ -205,7 +205,7 @@ export default function RepairPDFPage() {
                       <div
                         key={index}
                         className={cn(
-                          "p-4 rounded-xl border flex items-start gap-3",
+                          "p-4 rounded-lg border flex items-start gap-3",
                           issue.type === "error"
                             ? "border-red-500/30 bg-red-500/5"
                             : issue.type === "warning"
@@ -216,7 +216,7 @@ export default function RepairPDFPage() {
                         {getIssueIcon(issue.type)}
                         <div className="flex-1">
                           <p className="font-medium">{issue.title}</p>
-                          <p className="text-sm text-zinc-400">{issue.description}</p>
+                          <p className="text-sm text-muted-foreground">{issue.description}</p>
                         </div>
                         {issue.canFix && (
                           <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-500 font-medium">
@@ -238,10 +238,10 @@ export default function RepairPDFPage() {
                           type="button"
                           onClick={() => setRepairLevel(level.id)}
                           className={cn(
-                            "w-full p-4 rounded-xl border text-left transition-all",
+                            "w-full p-4 rounded-lg border text-left transition-all",
                             repairLevel === level.id
                               ? "border-red-500 bg-red-500/10"
-                              : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                              : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                           )}
                         >
                           <div className="flex items-center justify-between mb-2">
@@ -252,12 +252,12 @@ export default function RepairPDFPage() {
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-zinc-400 mb-3">{level.desc}</p>
+                          <p className="text-sm text-muted-foreground mb-3">{level.desc}</p>
                           <div className="flex flex-wrap gap-2">
                             {level.features.map((feature) => (
                               <span
                                 key={feature}
-                                className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-400"
+                                className="text-xs px-2 py-1 rounded-full bg-surface-2 text-muted-foreground"
                               >
                                 {feature}
                               </span>
@@ -298,12 +298,12 @@ export default function RepairPDFPage() {
 
         {/* Success info */}
         {status === "completed" && (
-          <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-6">
+          <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-6">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="h-6 w-6 text-green-500" />
               <div>
                 <p className="font-semibold text-green-500">Repair Successful</p>
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-muted-foreground">
                   All {issues.length} issues have been fixed. Your PDF is now healthy!
                 </p>
               </div>

@@ -89,22 +89,22 @@ export function FileDropzone({
         onDragOver={handleDrag}
         onDrop={handleDrop}
         className={cn(
-          "flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center transition-all cursor-pointer",
+          "flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center transition-colors",
           isDragging
-            ? "border-blue-500 bg-blue-500/10"
-            : "border-zinc-700 bg-zinc-900/50 hover:border-zinc-600 hover:bg-zinc-900",
+            ? "border-foreground bg-surface-2"
+            : "border-border-strong bg-surface hover:border-foreground/60 hover:bg-surface-2",
         )}
       >
         <Upload
           className={cn(
-            "h-12 w-12 mb-4 transition-colors",
-            isDragging ? "text-blue-500" : "text-zinc-500",
+            "h-10 w-10 mb-4 transition-colors",
+            isDragging ? "text-[--foreground]" : "text-[--muted-foreground]",
           )}
         />
-        <h3 className="text-lg font-semibold mb-2">
+        <h3 className="mb-1 text-base font-medium text-[--foreground]">
           Drop {multiple ? "files" : "file"} here
         </h3>
-        <p className="text-sm text-zinc-400 mb-6">
+        <p className="mb-5 text-[13px] text-[--muted-foreground]">
           or click to browse • Max {maxSize}MB per file
         </p>
         <input
@@ -115,10 +115,10 @@ export function FileDropzone({
           onChange={handleFileInput}
           className="hidden"
         />
-        <Button asChild size="sm" className="px-4">
+        <Button asChild size="sm" variant="outline">
           <label htmlFor={inputId} className="cursor-pointer">
-            <Upload className="h-4 w-4" />
-            Select {multiple ? "Files" : "File"}
+            <Upload className="h-3.5 w-3.5" />
+            Select {multiple ? "files" : "file"}
           </label>
         </Button>
       </div>
@@ -128,15 +128,17 @@ export function FileDropzone({
           {files.map((file, index) => (
             <div
               key={index}
-              className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/50 p-3"
+              className="flex items-center justify-between rounded-md border border-[--border] bg-[--surface] p-3"
             >
               <div className="flex items-center gap-3">
-                <div className="rounded bg-zinc-800 p-2">
-                  <Upload className="h-4 w-4 text-zinc-400" />
+                <div className="rounded-sm border border-[--border] bg-[--surface-2] p-1.5">
+                  <Upload className="h-3.5 w-3.5 text-[--muted-foreground]" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{file.name}</p>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-[13px] font-medium text-[--foreground]">
+                    {file.name}
+                  </p>
+                  <p className="text-[12px] text-[--muted-foreground]">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
@@ -146,7 +148,7 @@ export function FileDropzone({
                 variant="ghost"
                 size="icon"
                 onClick={() => removeFile(index)}
-                className="h-8 w-8 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                className="h-8 w-8 text-[--muted-foreground] hover:bg-[--surface-2] hover:text-[--foreground]"
               >
                 <X className="h-4 w-4" />
               </Button>

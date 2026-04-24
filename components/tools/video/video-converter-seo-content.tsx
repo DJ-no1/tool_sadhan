@@ -1,7 +1,7 @@
 export function VideoConverterSeoContent() {
   return (
-    <div className="space-y-4 text-zinc-400">
-      <h2 className="text-2xl font-bold text-zinc-100">
+    <div className="space-y-4 text-muted-foreground">
+      <h2 className="text-2xl font-bold text-foreground">
         About Video to JPG Conversion
       </h2>
       <p>

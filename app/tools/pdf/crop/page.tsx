@@ -127,21 +127,21 @@ export default function CropPDFPage() {
                     type="button"
                     onClick={() => setCropMode("margin")}
                     className={cn(
-                      "p-4 rounded-xl border flex flex-col items-center gap-2 transition-all",
+                      "p-4 rounded-lg border flex flex-col items-center gap-2 transition-all",
                       cropMode === "margin"
                         ? "border-red-500 bg-red-500/10"
-                        : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                        : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                     )}
                   >
                     <div className={cn(
                       "w-10 h-10 rounded-lg flex items-center justify-center",
-                      cropMode === "margin" ? "bg-red-500/20" : "bg-zinc-800"
+                      cropMode === "margin" ? "bg-red-500/20" : "bg-surface-2"
                     )}>
-                      <Square className={cn("h-5 w-5", cropMode === "margin" ? "text-red-500" : "text-zinc-400")} />
+                      <Square className={cn("h-5 w-5", cropMode === "margin" ? "text-red-500" : "text-muted-foreground")} />
                     </div>
                     <div className="text-center">
                       <p className="font-medium">Trim Margins</p>
-                      <p className="text-xs text-zinc-400">Remove edge space</p>
+                      <p className="text-xs text-muted-foreground">Remove edge space</p>
                     </div>
                   </button>
 
@@ -149,21 +149,21 @@ export default function CropPDFPage() {
                     type="button"
                     onClick={() => setCropMode("custom")}
                     className={cn(
-                      "p-4 rounded-xl border flex flex-col items-center gap-2 transition-all",
+                      "p-4 rounded-lg border flex flex-col items-center gap-2 transition-all",
                       cropMode === "custom"
                         ? "border-red-500 bg-red-500/10"
-                        : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                        : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                     )}
                   >
                     <div className={cn(
                       "w-10 h-10 rounded-lg flex items-center justify-center",
-                      cropMode === "custom" ? "bg-red-500/20" : "bg-zinc-800"
+                      cropMode === "custom" ? "bg-red-500/20" : "bg-surface-2"
                     )}>
-                      <Crop className={cn("h-5 w-5", cropMode === "custom" ? "text-red-500" : "text-zinc-400")} />
+                      <Crop className={cn("h-5 w-5", cropMode === "custom" ? "text-red-500" : "text-muted-foreground")} />
                     </div>
                     <div className="text-center">
                       <p className="font-medium">Custom Crop</p>
-                      <p className="text-xs text-zinc-400">Set exact values</p>
+                      <p className="text-xs text-muted-foreground">Set exact values</p>
                     </div>
                   </button>
 
@@ -171,21 +171,21 @@ export default function CropPDFPage() {
                     type="button"
                     onClick={() => setCropMode("preset")}
                     className={cn(
-                      "p-4 rounded-xl border flex flex-col items-center gap-2 transition-all",
+                      "p-4 rounded-lg border flex flex-col items-center gap-2 transition-all",
                       cropMode === "preset"
                         ? "border-red-500 bg-red-500/10"
-                        : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                        : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                     )}
                   >
                     <div className={cn(
                       "w-10 h-10 rounded-lg flex items-center justify-center",
-                      cropMode === "preset" ? "bg-red-500/20" : "bg-zinc-800"
+                      cropMode === "preset" ? "bg-red-500/20" : "bg-surface-2"
                     )}>
-                      <AlignCenter className={cn("h-5 w-5", cropMode === "preset" ? "text-red-500" : "text-zinc-400")} />
+                      <AlignCenter className={cn("h-5 w-5", cropMode === "preset" ? "text-red-500" : "text-muted-foreground")} />
                     </div>
                     <div className="text-center">
                       <p className="font-medium">Preset Size</p>
-                      <p className="text-xs text-zinc-400">Standard formats</p>
+                      <p className="text-xs text-muted-foreground">Standard formats</p>
                     </div>
                   </button>
                 </div>
@@ -201,7 +201,7 @@ export default function CropPDFPage() {
                             type="checkbox"
                             checked={linkMargins}
                             onChange={(e) => setLinkMargins(e.target.checked)}
-                            className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500"
+                            className="w-5 h-5 rounded border-border-strong bg-surface-2 text-red-500 focus:ring-red-500"
                           />
                           <span className="text-sm">Same margin on all sides</span>
                         </label>
@@ -209,7 +209,7 @@ export default function CropPDFPage() {
                         {linkMargins ? (
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-zinc-400">All sides: {marginTop}mm</span>
+                              <span className="text-sm text-muted-foreground">All sides: {marginTop}mm</span>
                             </div>
                             <Slider
                               value={[marginTop]}
@@ -230,7 +230,7 @@ export default function CropPDFPage() {
                             ].map((m) => (
                               <div key={m.side} className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-sm text-zinc-400">{m.label}</span>
+                                  <span className="text-sm text-muted-foreground">{m.label}</span>
                                   <span className="text-sm font-medium">{m.value}mm</span>
                                 </div>
                                 <Slider
@@ -254,41 +254,41 @@ export default function CropPDFPage() {
                     <OptionGroup title="Crop Area (pixels)">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">From Left</label>
+                          <label className="text-sm text-muted-foreground mb-1 block">From Left</label>
                           <Input
                             type="number"
                             value={marginLeft}
                             onChange={(e) => setMarginLeft(parseInt(e.target.value) || 0)}
                             min={0}
-                            className="bg-zinc-800 border-zinc-700"
+                            className="bg-surface-2 border-border-strong"
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">From Top</label>
+                          <label className="text-sm text-muted-foreground mb-1 block">From Top</label>
                           <Input
                             type="number"
                             value={marginTop}
                             onChange={(e) => setMarginTop(parseInt(e.target.value) || 0)}
                             min={0}
-                            className="bg-zinc-800 border-zinc-700"
+                            className="bg-surface-2 border-border-strong"
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">Width</label>
+                          <label className="text-sm text-muted-foreground mb-1 block">Width</label>
                           <Input
                             type="number"
                             defaultValue={595}
                             min={1}
-                            className="bg-zinc-800 border-zinc-700"
+                            className="bg-surface-2 border-border-strong"
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">Height</label>
+                          <label className="text-sm text-muted-foreground mb-1 block">Height</label>
                           <Input
                             type="number"
                             defaultValue={842}
                             min={1}
-                            className="bg-zinc-800 border-zinc-700"
+                            className="bg-surface-2 border-border-strong"
                           />
                         </div>
                       </div>
@@ -305,14 +305,14 @@ export default function CropPDFPage() {
                             type="button"
                             onClick={() => setPresetSize(preset.id)}
                             className={cn(
-                              "p-4 rounded-xl border text-left transition-all",
+                              "p-4 rounded-lg border text-left transition-all",
                               presetSize === preset.id
                                 ? "border-red-500 bg-red-500/10"
-                                : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                                : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                             )}
                           >
                             <p className="font-semibold">{preset.name}</p>
-                            <p className="text-sm text-zinc-400">{preset.desc}</p>
+                            <p className="text-sm text-muted-foreground">{preset.desc}</p>
                           </button>
                         ))}
                       </div>
@@ -329,7 +329,7 @@ export default function CropPDFPage() {
                           "flex-1 py-2 px-4 rounded-lg border font-medium transition-all",
                           applyToAll
                             ? "border-red-500 bg-red-500/10 text-red-500"
-                            : "border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600"
+                            : "border-border-strong bg-surface-2 text-muted-foreground hover:border-border-strong"
                         )}
                       >
                         All Pages
@@ -341,7 +341,7 @@ export default function CropPDFPage() {
                           "flex-1 py-2 px-4 rounded-lg border font-medium transition-all",
                           !applyToAll
                             ? "border-red-500 bg-red-500/10 text-red-500"
-                            : "border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600"
+                            : "border-border-strong bg-surface-2 text-muted-foreground hover:border-border-strong"
                         )}
                       >
                         Select Pages

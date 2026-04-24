@@ -109,28 +109,28 @@ export default function RotatePDFPage() {
                       <button
                         type="button"
                         onClick={() => setApplyToAll(true)}
-                        className={`p-4 rounded-xl border text-left transition-all ${
+                        className={`p-4 rounded-lg border text-left transition-all ${
                           applyToAll
                             ? "border-red-500 bg-red-500/10"
-                            : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                            : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                         }`}
                       >
-                        <FileText className={`h-6 w-6 mb-2 ${applyToAll ? "text-red-500" : "text-zinc-400"}`} />
+                        <FileText className={`h-6 w-6 mb-2 ${applyToAll ? "text-red-500" : "text-muted-foreground"}`} />
                         <p className="font-medium">All Pages</p>
-                        <p className="text-sm text-zinc-400">Rotate every page</p>
+                        <p className="text-sm text-muted-foreground">Rotate every page</p>
                       </button>
                       <button
                         type="button"
                         onClick={() => setApplyToAll(false)}
-                        className={`p-4 rounded-xl border text-left transition-all ${
+                        className={`p-4 rounded-lg border text-left transition-all ${
                           !applyToAll
                             ? "border-red-500 bg-red-500/10"
-                            : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                            : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                         }`}
                       >
-                        <FlipHorizontal className={`h-6 w-6 mb-2 ${!applyToAll ? "text-red-500" : "text-zinc-400"}`} />
+                        <FlipHorizontal className={`h-6 w-6 mb-2 ${!applyToAll ? "text-red-500" : "text-muted-foreground"}`} />
                         <p className="font-medium">Select Pages</p>
-                        <p className="text-sm text-zinc-400">Choose specific pages</p>
+                        <p className="text-sm text-muted-foreground">Choose specific pages</p>
                       </button>
                     </div>
                   </OptionGroup>
@@ -144,14 +144,14 @@ export default function RotatePDFPage() {
                             key={option.angle}
                             type="button"
                             onClick={() => setRotateAll(option.angle)}
-                            className={`p-4 rounded-xl border text-center transition-all ${
+                            className={`p-4 rounded-lg border text-center transition-all ${
                               rotateAll === option.angle
                                 ? "border-red-500 bg-red-500/10"
-                                : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                                : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                             }`}
                           >
                             <option.icon className={`h-8 w-8 mx-auto mb-2 ${
-                              rotateAll === option.angle ? "text-red-500" : "text-zinc-400"
+                              rotateAll === option.angle ? "text-red-500" : "text-muted-foreground"
                             }`} />
                             <p className="font-medium text-sm">{option.label}</p>
                           </button>
@@ -187,7 +187,7 @@ export default function RotatePDFPage() {
                               className={`aspect-[3/4] rounded-lg border flex flex-col items-center justify-center transition-all ${
                                 pageRotation
                                   ? "border-red-500 bg-red-500/10"
-                                  : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                                  : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                               }`}
                             >
                               <span className="text-sm font-medium">{pageNum}</span>
@@ -198,7 +198,7 @@ export default function RotatePDFPage() {
                           );
                         })}
                       </div>
-                      <p className="text-xs text-zinc-500 mt-3">
+                      <p className="text-xs text-muted-foreground mt-3">
                         Click pages to cycle through rotation angles (90° → 180° → 270°)
                       </p>
                     </OptionGroup>

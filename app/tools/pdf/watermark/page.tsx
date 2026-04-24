@@ -115,7 +115,7 @@ export default function WatermarkPDFPage() {
                       <OptionGroup title="Rotation">
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-zinc-400">{rotation}°</span>
+                            <span className="text-sm text-muted-foreground">{rotation}°</span>
                           </div>
                           <Slider
                             value={[rotation]}
@@ -125,7 +125,7 @@ export default function WatermarkPDFPage() {
                             step={5}
                             className="w-full"
                           />
-                          <div className="flex justify-between text-xs text-zinc-500">
+                          <div className="flex justify-between text-xs text-muted-foreground">
                             <span>-180°</span>
                             <span>0°</span>
                             <span>180°</span>
@@ -144,7 +144,7 @@ export default function WatermarkPDFPage() {
                               className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
                                 position === pos.id
                                   ? "border-red-500 bg-red-500/10 text-red-500"
-                                  : "border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600"
+                                  : "border-border-strong bg-surface-2 text-muted-foreground hover:border-border-strong"
                               }`}
                             >
                               {pos.label}
@@ -158,15 +158,15 @@ export default function WatermarkPDFPage() {
                         <div className="grid grid-cols-2 gap-3">
                           <button
                             type="button"
-                            className="p-3 rounded-xl border border-red-500 bg-red-500/10 text-left"
+                            className="p-3 rounded-lg border border-red-500 bg-red-500/10 text-left"
                           >
                             <p className="font-medium">All Pages</p>
                           </button>
                           <button
                             type="button"
-                            className="p-3 rounded-xl border border-zinc-700/50 bg-zinc-800/30 text-left hover:border-zinc-600"
+                            className="p-3 rounded-lg border border-border-strong/50 bg-surface-2/30 text-left hover:border-border-strong"
                           >
-                            <p className="font-medium text-zinc-400">Custom Range</p>
+                            <p className="font-medium text-muted-foreground">Custom Range</p>
                           </button>
                         </div>
                       </OptionGroup>
@@ -179,28 +179,28 @@ export default function WatermarkPDFPage() {
                       <button
                         type="button"
                         onClick={() => setWatermarkType("text")}
-                        className={`p-4 rounded-xl border text-left transition-all ${
+                        className={`p-4 rounded-lg border text-left transition-all ${
                           watermarkType === "text"
                             ? "border-red-500 bg-red-500/10"
-                            : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                            : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                         }`}
                       >
-                        <Type className={`h-6 w-6 mb-2 ${watermarkType === "text" ? "text-red-500" : "text-zinc-400"}`} />
+                        <Type className={`h-6 w-6 mb-2 ${watermarkType === "text" ? "text-red-500" : "text-muted-foreground"}`} />
                         <p className="font-medium">Text</p>
-                        <p className="text-sm text-zinc-400">Add custom text</p>
+                        <p className="text-sm text-muted-foreground">Add custom text</p>
                       </button>
                       <button
                         type="button"
                         onClick={() => setWatermarkType("image")}
-                        className={`p-4 rounded-xl border text-left transition-all ${
+                        className={`p-4 rounded-lg border text-left transition-all ${
                           watermarkType === "image"
                             ? "border-red-500 bg-red-500/10"
-                            : "border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600"
+                            : "border-border-strong/50 bg-surface-2/30 hover:border-border-strong"
                         }`}
                       >
-                        <ImageIcon className={`h-6 w-6 mb-2 ${watermarkType === "image" ? "text-red-500" : "text-zinc-400"}`} />
+                        <ImageIcon className={`h-6 w-6 mb-2 ${watermarkType === "image" ? "text-red-500" : "text-muted-foreground"}`} />
                         <p className="font-medium">Image</p>
-                        <p className="text-sm text-zinc-400">Upload logo/image</p>
+                        <p className="text-sm text-muted-foreground">Upload logo/image</p>
                       </button>
                     </div>
                   </OptionGroup>
@@ -213,7 +213,7 @@ export default function WatermarkPDFPage() {
                           value={text}
                           onChange={(e) => setText(e.target.value)}
                           placeholder="Enter watermark text"
-                          className="bg-zinc-800 border-zinc-700 text-lg"
+                          className="bg-surface-2 border-border-strong text-lg"
                         />
                       </OptionGroup>
 
@@ -227,7 +227,7 @@ export default function WatermarkPDFPage() {
                             step={2}
                             className="flex-1"
                           />
-                          <span className="text-sm text-zinc-400 w-16">{fontSize}px</span>
+                          <span className="text-sm text-muted-foreground w-16">{fontSize}px</span>
                         </div>
                       </OptionGroup>
 
@@ -248,7 +248,7 @@ export default function WatermarkPDFPage() {
                             type="color"
                             value={color}
                             onChange={(e) => setColor(e.target.value)}
-                            className="w-10 h-10 p-1 bg-zinc-800 border-zinc-700 cursor-pointer"
+                            className="w-10 h-10 p-1 bg-surface-2 border-border-strong cursor-pointer"
                           />
                         </div>
                       </OptionGroup>
@@ -258,10 +258,10 @@ export default function WatermarkPDFPage() {
                   {/* Image Upload */}
                   {watermarkType === "image" && (
                     <OptionGroup title="Upload Image" className="mt-6">
-                      <div className="border-2 border-dashed border-zinc-700 rounded-xl p-8 text-center hover:border-zinc-600 transition-colors cursor-pointer">
-                        <ImageIcon className="h-8 w-8 mx-auto mb-2 text-zinc-500" />
-                        <p className="text-sm text-zinc-400">Click to upload or drag image</p>
-                        <p className="text-xs text-zinc-500 mt-1">PNG, JPG up to 5MB</p>
+                      <div className="border-2 border-dashed border-border-strong rounded-lg p-8 text-center hover:border-border-strong transition-colors cursor-pointer">
+                        <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Click to upload or drag image</p>
+                        <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB</p>
                       </div>
                     </OptionGroup>
                   )}
@@ -271,8 +271,8 @@ export default function WatermarkPDFPage() {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          {opacity > 0 ? <Eye className="h-4 w-4 text-zinc-400" /> : <EyeOff className="h-4 w-4 text-zinc-400" />}
-                          <span className="text-sm text-zinc-400">{opacity}%</span>
+                          {opacity > 0 ? <Eye className="h-4 w-4 text-muted-foreground" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                          <span className="text-sm text-muted-foreground">{opacity}%</span>
                         </div>
                       </div>
                       <Slider
@@ -283,7 +283,7 @@ export default function WatermarkPDFPage() {
                         step={5}
                         className="w-full"
                       />
-                      <div className="flex justify-between text-xs text-zinc-500">
+                      <div className="flex justify-between text-xs text-muted-foreground">
                         <span>Subtle</span>
                         <span>Visible</span>
                       </div>

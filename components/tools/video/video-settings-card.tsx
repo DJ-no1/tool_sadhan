@@ -26,6 +26,7 @@ interface VideoSettingsCardProps {
   onEndTimeChange: (value: number) => void;
   onOutputFormatChange: (value: OutputFormat) => void;
   onExtract: () => void;
+  onCancel?: () => void;
 }
 
 export function VideoSettingsCard({
@@ -45,6 +46,7 @@ export function VideoSettingsCard({
   onEndTimeChange,
   onOutputFormatChange,
   onExtract,
+  onCancel,
 }: VideoSettingsCardProps) {
   const intervalPresets = [0.5, 1, 2, 5];
 
@@ -215,25 +217,37 @@ export function VideoSettingsCard({
           </div>
         )}
 
-        {/* Extract Button */}
-        <Button
-          onClick={onExtract}
-          disabled={isExtracting}
-          className="w-full"
-          size="default"
-        >
-          {isExtracting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Extracting Frames
-            </>
-          ) : (
-            <>
-              <ImageIcon className="h-4 w-4" />
-              Extract Frames
-            </>
+        {/* Extract / Cancel */}
+        <div className="flex gap-2">
+          <Button
+            onClick={onExtract}
+            disabled={isExtracting}
+            className="flex-1"
+            size="default"
+          >
+            {isExtracting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Extracting frames
+              </>
+            ) : (
+              <>
+                <ImageIcon className="h-4 w-4" />
+                Extract frames
+              </>
+            )}
+          </Button>
+          {isExtracting && onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              size="default"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
           )}
-        </Button>
+        </div>
       </CardContent>
     </Card>
   );
