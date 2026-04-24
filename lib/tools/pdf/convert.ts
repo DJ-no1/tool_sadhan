@@ -9,6 +9,11 @@ import {
   type ProgressCallback,
 } from "./core";
 import type { PdfResult } from "./page-ops";
+import {
+  canUsePdfWorker,
+  runPdfToJpgInWorker,
+  runRasterizeInWorker,
+} from "./worker/client";
 
 export type JpgPageSize = "fit" | "A4" | "Letter" | "Legal";
 export type JpgOrientation = "portrait" | "landscape" | "auto";
@@ -195,17 +200,38 @@ export async function pdfToJpg(
   options: PdfToJpgOptions = {},
   onProgress?: ProgressCallback,
 ): Promise<PdfResult> {
+  const format = options.format ?? "jpg";
+  const quality = Math.min(1, Math.max(0, options.quality ?? 0.92));
+  const scale = options.scale ?? 2;
+  const baseName = stripPdfExtension(file.name);
+
+  // Fast path: offload rendering + encoding to a Web Worker. Keeps the main
+  // thread responsive during multi-page jobs.
+  if (canUsePdfWorker()) {
+    try {
+      const buffer = await readFileAsArrayBuffer(file);
+      const result = await runPdfToJpgInWorker(
+        buffer,
+        {
+          format,
+          quality,
+          scale,
+          pages: options.pages,
+          baseName,
+        },
+        onProgress,
+      );
+      return { blob: result.blob, name: result.name, size: result.size };
+    } catch (err) {
+      console.warn("pdfToJpg worker failed, falling back to main thread:", err);
+    }
+  }
+
   const pdfjs = await getPdfJs();
   const data = await readFileAsArrayBuffer(file);
   const doc = await pdfjs.getDocument({ data: new Uint8Array(data) }).promise;
   const total = doc.numPages;
-  const format = options.format ?? "jpg";
   const { mime, ext } = FORMAT_INFO[format];
-  const quality = Math.min(
-    1,
-    Math.max(0, options.quality ?? 0.92),
-  );
-  const scale = options.scale ?? 2;
 
   const targetPages = (options.pages ?? [])
     .filter((n) => Number.isFinite(n) && n >= 1 && n <= total);
@@ -214,7 +240,6 @@ export async function pdfToJpg(
       ? Array.from(new Set(targetPages)).sort((a, b) => a - b)
       : Array.from({ length: total }, (_, i) => i + 1);
 
-  const baseName = stripPdfExtension(file.name);
   const pagePad = String(pagesToRender[pagesToRender.length - 1]).length;
 
   const rendered: Array<{ name: string; bytes: Uint8Array }> = [];
@@ -288,6 +313,30 @@ export async function rasterizeAndRebuildPdf(
   } = {},
   onProgress?: ProgressCallback,
 ): Promise<PdfResult> {
+  const scale = options.scale ?? 1.5;
+  const quality = options.quality ?? 0.75;
+  const grayscale = options.grayscale ?? false;
+  const outputName = `${stripPdfExtension(file.name)}_compressed.pdf`;
+
+  // Offload rasterization + re-embedding to the worker so the UI thread stays
+  // interactive while we chew through every page.
+  if (canUsePdfWorker()) {
+    try {
+      const buffer = await readFileAsArrayBuffer(file);
+      const result = await runRasterizeInWorker(
+        buffer,
+        { scale, quality, grayscale, outputName },
+        onProgress,
+      );
+      return { blob: result.blob, name: result.name, size: result.size };
+    } catch (err) {
+      console.warn(
+        "rasterizeAndRebuildPdf worker failed, falling back to main thread:",
+        err,
+      );
+    }
+  }
+
   const pdfjs = await getPdfJs();
   const data = await readFileAsArrayBuffer(file);
   const sourceDoc = await pdfjs.getDocument({ data: new Uint8Array(data) })
@@ -297,10 +346,6 @@ export async function rasterizeAndRebuildPdf(
   const out = await PDFDocument.create();
   out.setCreator("tool_sadhan");
   out.setProducer("tool_sadhan");
-
-  const scale = options.scale ?? 1.5;
-  const quality = options.quality ?? 0.75;
-  const grayscale = options.grayscale ?? false;
 
   for (let i = 1; i <= total; i++) {
     const page = await sourceDoc.getPage(i);
@@ -355,7 +400,7 @@ export async function rasterizeAndRebuildPdf(
   onProgress?.(100, "Done");
   return {
     blob,
-    name: `${stripPdfExtension(file.name)}_compressed.pdf`,
+    name: outputName,
     size: blob.size,
   };
 }
