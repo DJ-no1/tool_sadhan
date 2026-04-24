@@ -10,6 +10,7 @@ import {
   type ProcessingStatus,
 } from "@/components/tools/pdf";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { mergePdfs } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -23,12 +24,15 @@ export default function MergePDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFilesChange = useCallback((newFiles: PDFFile[]) => {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
 
   const handleMerge = async () => {
@@ -36,20 +40,22 @@ export default function MergePDFPage() {
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [15, 30, 45, 60, 75, 90, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      setProgress(p);
+    try {
+      const result = await mergePdfs(
+        files.map((f) => f.file),
+        (p) => setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to merge PDFs.",
+      );
+      setStatus("error");
     }
-
-    const totalSize = files.reduce((acc, f) => acc + f.file.size, 0);
-    setResultFile({
-      name: "merged_document.pdf",
-      size: totalSize * 0.95,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -57,11 +63,9 @@ export default function MergePDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading merged PDF");
-  };
 
   return (
     <PDFToolLayout
@@ -102,10 +106,14 @@ export default function MergePDFPage() {
           status={status}
           progress={progress}
           message={
-            status === "processing" ? "Merging your PDFs..." : undefined
+            status === "processing"
+              ? "Merging your PDFs..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
           }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

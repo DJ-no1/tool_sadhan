@@ -12,6 +12,8 @@ import {
   type ProcessingStatus,
 } from "@/components/tools/pdf";
 import { Input } from "@/components/ui/input";
+import { isPdfEncrypted, unlockPdf } from "@/lib/tools/pdf";
+import { useEffect } from "react";
 
 interface PDFFile {
   id: string;
@@ -25,37 +27,52 @@ export default function UnlockPDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [password, setPassword] = useState("");
-  const [isPasswordProtected, setIsPasswordProtected] = useState(true);
+  const [isPasswordProtected, setIsPasswordProtected] = useState(false);
 
   const handleFilesChange = useCallback((newFiles: PDFFile[]) => {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
-    // Simulate detection
-    setIsPasswordProtected(true);
+    setErrorMessage(null);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const file = files[0]?.file;
+      const encrypted = file ? await isPdfEncrypted(file) : false;
+      if (!cancelled) setIsPasswordProtected(encrypted);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [files]);
 
   const handleUnlock = async () => {
     if (files.length === 0) return;
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [30, 60, 90, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setProgress(p);
+    try {
+      const result = await unlockPdf(files[0].file, password, (p) =>
+        setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to unlock PDF.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_unlocked.pdf"),
-      size: files[0].file.size * 0.99,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -64,11 +81,9 @@ export default function UnlockPDFPage() {
     setProgress(0);
     setResultFile(null);
     setPassword("");
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading unlocked PDF");
-  };
 
   return (
     <PDFToolLayout
@@ -151,10 +166,18 @@ export default function UnlockPDFPage() {
                   <ActionButton
                     icon={Unlock}
                     onClick={handleUnlock}
-                    disabled={password.length === 0}
                     className="w-full"
                   >
                     Unlock PDF
+                  </ActionButton>
+                )}
+                {!isPasswordProtected && files.length > 0 && (
+                  <ActionButton
+                    icon={Unlock}
+                    onClick={handleUnlock}
+                    className="w-full"
+                  >
+                    Re-save Unencrypted Copy
                   </ActionButton>
                 )}
               </>
@@ -165,9 +188,15 @@ export default function UnlockPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Removing password protection..." : undefined}
+          message={
+            status === "processing"
+              ? "Removing password protection..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

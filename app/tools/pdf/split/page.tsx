@@ -13,7 +13,7 @@ import {
   type ProcessingStatus,
 } from "@/components/tools/pdf";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { splitPdf } from "@/lib/tools/pdf";
 
 type SplitMode = "range" | "extract" | "every";
 
@@ -29,7 +29,9 @@ export default function SplitPDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Split options
   const [mode, setMode] = useState<SplitMode>("range");
@@ -41,6 +43,7 @@ export default function SplitPDFPage() {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
 
   const handleSplit = async () => {
@@ -48,19 +51,28 @@ export default function SplitPDFPage() {
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [20, 40, 60, 80, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setProgress(p);
+    try {
+      const result = await splitPdf(
+        files[0].file,
+        {
+          mode,
+          ranges: pageRanges,
+          pages: extractPages,
+          every: splitEvery,
+        },
+        (p) => setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to split PDF.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: "split_pages.zip",
-      size: files[0].file.size * 0.8,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -68,11 +80,9 @@ export default function SplitPDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading split PDFs");
-  };
 
   const modes = [
     {
@@ -215,9 +225,15 @@ export default function SplitPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Splitting your PDF..." : undefined}
+          message={
+            status === "processing"
+              ? "Splitting your PDF..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

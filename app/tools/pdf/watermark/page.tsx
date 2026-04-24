@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Stamp, Type, Image as ImageIcon, Move, Palette, Eye, EyeOff } from "lucide-react";
+import { useRef, useState, useCallback } from "react";
+import { Stamp, Type, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
 import {
   PDFToolLayout,
   PDFDropzone,
@@ -14,7 +14,7 @@ import {
 } from "@/components/tools/pdf";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
+import { addWatermark } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -31,7 +31,9 @@ export default function WatermarkPDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Watermark options
   const [watermarkType, setWatermarkType] = useState<WatermarkType>("text");
@@ -41,31 +43,75 @@ export default function WatermarkPDFPage() {
   const [opacity, setOpacity] = useState(30);
   const [rotation, setRotation] = useState(-45);
   const [position, setPosition] = useState<WatermarkPosition>("center");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const handleFilesChange = useCallback((newFiles: PDFFile[]) => {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
+
+  const parseHexColor = (hex: string) => {
+    const cleaned = hex.replace("#", "");
+    const full =
+      cleaned.length === 3
+        ? cleaned
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : cleaned.padEnd(6, "0");
+    return {
+      r: parseInt(full.slice(0, 2), 16) || 0,
+      g: parseInt(full.slice(2, 4), 16) || 0,
+      b: parseInt(full.slice(4, 6), 16) || 0,
+    };
+  };
 
   const handleWatermark = async () => {
     if (files.length === 0) return;
+    if (watermarkType === "image" && !imageFile) {
+      setErrorMessage("Upload a watermark image first.");
+      setStatus("error");
+      return;
+    }
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [20, 40, 60, 80, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      setProgress(p);
+    try {
+      const result = await addWatermark(
+        files[0].file,
+        watermarkType === "text"
+          ? {
+              kind: "text",
+              text,
+              position,
+              fontSize,
+              color: parseHexColor(color),
+              opacity: opacity / 100,
+              rotation,
+            }
+          : {
+              kind: "image",
+              image: imageFile!,
+              position,
+              opacity: opacity / 100,
+              rotation,
+            },
+        (p) => setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to add watermark.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_watermarked.pdf"),
-      size: files[0].file.size * 1.02,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -73,11 +119,10 @@ export default function WatermarkPDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setImageFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading watermarked PDF");
-  };
 
   const positions: { id: WatermarkPosition; label: string }[] = [
     { id: "center", label: "Center" },
@@ -258,11 +303,42 @@ export default function WatermarkPDFPage() {
                   {/* Image Upload */}
                   {watermarkType === "image" && (
                     <OptionGroup title="Upload Image" className="mt-6">
-                      <div className="border-2 border-dashed border-border-strong rounded-lg p-8 text-center hover:border-border-strong transition-colors cursor-pointer">
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) setImageFile(f);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => imageInputRef.current?.click()}
+                        className="w-full border-2 border-dashed border-border-strong rounded-lg p-8 text-center hover:border-border-strong transition-colors cursor-pointer"
+                      >
                         <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Click to upload or drag image</p>
-                        <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB</p>
-                      </div>
+                        {imageFile ? (
+                          <>
+                            <p className="text-sm text-foreground">
+                              {imageFile.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Click to choose a different image
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm text-muted-foreground">
+                              Click to upload image
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              PNG, JPG up to 5MB
+                            </p>
+                          </>
+                        )}
+                      </button>
                     </OptionGroup>
                   )}
 
@@ -313,9 +389,15 @@ export default function WatermarkPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Adding watermark..." : undefined}
+          message={
+            status === "processing"
+              ? "Adding watermark..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

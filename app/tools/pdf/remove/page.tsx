@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Scissors, Trash2, FileText, X } from "lucide-react";
 import {
   PDFToolLayout,
@@ -11,6 +11,7 @@ import {
   ActionButton,
   type ProcessingStatus,
 } from "@/components/tools/pdf";
+import { getPageCount, removePages } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -24,17 +25,32 @@ export default function RemovePDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [pagesToRemove, setPagesToRemove] = useState<number[]>([]);
-  const totalPages = 15; // Simulated
+  const [totalPages, setTotalPages] = useState(0);
 
   const handleFilesChange = useCallback((newFiles: PDFFile[]) => {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
     setPagesToRemove([]);
+    setErrorMessage(null);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const first = files[0]?.file;
+      const count = first ? await getPageCount(first) : 0;
+      if (!cancelled) setTotalPages(count);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [files]);
 
   const togglePage = (pageNum: number) => {
     if (pagesToRemove.includes(pageNum)) {
@@ -49,20 +65,21 @@ export default function RemovePDFPage() {
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [25, 50, 75, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      setProgress(p);
+    try {
+      const result = await removePages(files[0].file, pagesToRemove, (p) =>
+        setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to remove pages.",
+      );
+      setStatus("error");
     }
-
-    const remainingPages = totalPages - pagesToRemove.length;
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_edited.pdf"),
-      size: (files[0].file.size / totalPages) * remainingPages,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -71,11 +88,9 @@ export default function RemovePDFPage() {
     setProgress(0);
     setResultFile(null);
     setPagesToRemove([]);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading edited PDF");
-  };
 
   const remainingPages = totalPages - pagesToRemove.length;
 
@@ -188,9 +203,15 @@ export default function RemovePDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Removing pages..." : undefined}
+          message={
+            status === "processing"
+              ? "Removing pages..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

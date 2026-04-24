@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { PenTool, Type, Upload, Trash2, Move, RotateCw, RotateCcw, Check } from "lucide-react";
+import { PenTool, Type, Upload, Trash2, Check } from "lucide-react";
 import {
   PDFToolLayout,
   PDFDropzone,
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { signPdf } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -27,6 +28,49 @@ interface SignatureData {
   color: string;
 }
 
+function parseHexColor(hex: string): { r: number; g: number; b: number } {
+  const m = hex.replace("#", "");
+  const n = m.length === 3 ? m.split("").map((c) => c + c).join("") : m;
+  const int = parseInt(n, 16);
+  return {
+    r: ((int >> 16) & 255) / 255,
+    g: ((int >> 8) & 255) / 255,
+    b: (int & 255) / 255,
+  };
+}
+
+/**
+ * Convert a typed-cursive signature to a transparent PNG data URL so we can
+ * preserve the user's font + colour choice when embedding in the PDF.
+ */
+function rasterizeTextSignature(
+  text: string,
+  fontSize: number,
+  color: string,
+): string | null {
+  if (typeof document === "undefined") return null;
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  const font = `${fontSize}px cursive`;
+  ctx.font = font;
+  const metrics = ctx.measureText(text);
+  const width = Math.ceil(metrics.width) + 16;
+  const height = Math.ceil(fontSize * 1.6);
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx2 = canvas.getContext("2d");
+  if (!ctx2) return null;
+  ctx2.font = font;
+  ctx2.textBaseline = "middle";
+  ctx2.fillStyle = color;
+  ctx2.fillText(text, 8, height / 2);
+
+  return canvas.toDataURL("image/png");
+}
+
 type SignMode = "draw" | "type" | "upload";
 
 export default function SignPDFPage() {
@@ -36,7 +80,9 @@ export default function SignPDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Signature state
   const [signMode, setSignMode] = useState<SignMode>("draw");
@@ -61,14 +107,12 @@ export default function SignPDFPage() {
     setSignature(null);
   }, []);
 
-  // Canvas drawing functions
   useEffect(() => {
     if (signMode === "draw" && canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.fillStyle = "#1a1a1a";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
     }
   }, [signMode]);
@@ -112,8 +156,7 @@ export default function SignPDFPage() {
     if (!canvasRef.current) return;
     const ctx = canvasRef.current.getContext("2d");
     if (ctx) {
-      ctx.fillStyle = "#1a1a1a";
-      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     }
     setSignature(null);
   };
@@ -145,19 +188,47 @@ export default function SignPDFPage() {
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [30, 60, 90, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      setProgress(p);
+    try {
+      let imageDataUrl: string | null = null;
+
+      if (signature.type === "draw" || signature.type === "image") {
+        imageDataUrl = signature.data;
+      } else {
+        imageDataUrl = rasterizeTextSignature(
+          signature.data,
+          fontSize,
+          signature.color,
+        );
+        if (!imageDataUrl) {
+          throw new Error("Could not rasterize typed signature.");
+        }
+      }
+
+      const result = await signPdf(
+        files[0].file,
+        {
+          kind: "image",
+          data: imageDataUrl,
+          xPct: signaturePosition.x,
+          yPct: signaturePosition.y,
+          page: currentPage,
+          color: parseHexColor(signature.color),
+          widthPts: signature.type === "image" ? 200 : 180,
+        },
+        (p) => setProgress(p),
+      );
+
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to sign PDF.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_signed.pdf"),
-      size: files[0].file.size * 1.02,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -167,20 +238,11 @@ export default function SignPDFPage() {
     setResultFile(null);
     setSignature(null);
     setTextSignature("");
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading signed PDF");
-  };
 
   const colors = ["#000000", "#0066cc", "#333333", "#1a5f2a", "#7b2cbf"];
-
-  const fontStyles = [
-    { name: "Script", font: "cursive" },
-    { name: "Elegant", font: "Georgia, serif" },
-    { name: "Clean", font: "Arial, sans-serif" },
-    { name: "Handwritten", font: "'Brush Script MT', cursive" },
-  ];
 
   return (
     <PDFToolLayout
@@ -470,9 +532,15 @@ export default function SignPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Adding signature to PDF..." : undefined}
+          message={
+            status === "processing"
+              ? "Adding signature to PDF..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

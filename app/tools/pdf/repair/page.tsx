@@ -12,17 +12,11 @@ import {
   type ProcessingStatus,
 } from "@/components/tools/pdf";
 import { cn } from "@/lib/utils";
+import { diagnosePdf, repairPdf, type RepairIssue } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
   file: File;
-}
-
-interface RepairIssue {
-  type: "warning" | "error" | "info";
-  title: string;
-  description: string;
-  canFix: boolean;
 }
 
 type RepairLevel = "basic" | "standard" | "aggressive";
@@ -34,7 +28,9 @@ export default function RepairPDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Repair state
   const [repairLevel, setRepairLevel] = useState<RepairLevel>("standard");
@@ -47,50 +43,29 @@ export default function RepairPDFPage() {
     setResultFile(null);
     setScanComplete(false);
     setIssues([]);
+    setErrorMessage(null);
   }, []);
 
   const handleScan = async () => {
+    if (files.length === 0) return;
+
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    // Simulate scanning
-    const intervals = [20, 40, 60, 80, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      setProgress(p);
+    try {
+      const diagnosis = await diagnosePdf(files[0].file, (p) => setProgress(p));
+      setIssues(diagnosis.issues);
+      setScanComplete(true);
+      setStatus("idle");
+      setProgress(0);
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to scan PDF.",
+      );
+      setStatus("error");
     }
-
-    // Generate mock issues
-    setIssues([
-      {
-        type: "warning",
-        title: "Corrupted cross-reference table",
-        description: "The PDF's internal reference table has minor inconsistencies",
-        canFix: true,
-      },
-      {
-        type: "error",
-        title: "Invalid object stream",
-        description: "Object stream 247 contains invalid data",
-        canFix: true,
-      },
-      {
-        type: "info",
-        title: "Outdated PDF version",
-        description: "PDF is version 1.4, can be upgraded to 1.7",
-        canFix: true,
-      },
-      {
-        type: "warning",
-        title: "Missing font subset",
-        description: "Font 'Arial-Bold' is not fully embedded",
-        canFix: true,
-      },
-    ]);
-
-    setScanComplete(true);
-    setStatus("idle");
-    setProgress(0);
   };
 
   const handleRepair = async () => {
@@ -98,19 +73,19 @@ export default function RepairPDFPage() {
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [15, 30, 50, 70, 85, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setProgress(p);
+    try {
+      const result = await repairPdf(files[0].file, (p) => setProgress(p));
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to repair PDF.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_repaired.pdf"),
-      size: files[0].file.size,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -120,11 +95,9 @@ export default function RepairPDFPage() {
     setResultFile(null);
     setScanComplete(false);
     setIssues([]);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading repaired PDF");
-  };
 
   const repairLevels: { id: RepairLevel; name: string; desc: string; features: string[] }[] = [
     {
@@ -289,10 +262,12 @@ export default function RepairPDFPage() {
               ? scanComplete
                 ? "Repairing PDF..."
                 : "Scanning for issues..."
-              : undefined
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
           }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
 

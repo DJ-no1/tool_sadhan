@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, downloadBlob } from "@/lib/utils";
 
 export type ProcessingStatus = "idle" | "processing" | "completed" | "error";
 
@@ -25,8 +25,15 @@ interface ProcessingPanelProps {
     name: string;
     size: number;
     url?: string;
+    blob?: Blob;
   };
   originalSize?: number;
+  /**
+   * Optional source blob/file to download when no processed result blob/URL
+   * is available (e.g. when the processing is a simulation). Downloaded under
+   * `resultFile.name`.
+   */
+  sourceFile?: Blob | null;
   onDownload?: () => void;
   onReset?: () => void;
   className?: string;
@@ -38,10 +45,31 @@ export function ProcessingPanel({
   message,
   resultFile,
   originalSize,
+  sourceFile,
   onDownload,
   onReset,
   className,
 }: ProcessingPanelProps) {
+  const handleDownloadClick = () => {
+    if (resultFile) {
+      if (resultFile.blob) {
+        downloadBlob(resultFile.blob, resultFile.name);
+      } else if (resultFile.url) {
+        const anchor = document.createElement("a");
+        anchor.href = resultFile.url;
+        anchor.download = resultFile.name;
+        anchor.rel = "noopener";
+        anchor.style.display = "none";
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+      } else if (sourceFile) {
+        downloadBlob(sourceFile, resultFile.name);
+      }
+    }
+
+    onDownload?.();
+  };
   const formatSize = (bytes: number) => {
     if (bytes < 1024 * 1024) {
       return `${(bytes / 1024).toFixed(1)} KB`;
@@ -165,7 +193,7 @@ export function ProcessingPanel({
           )}
 
           <div className="flex gap-2">
-            <Button onClick={onDownload} className="flex-1 gap-1.5">
+            <Button onClick={handleDownloadClick} className="flex-1 gap-1.5">
               <Download className="h-3.5 w-3.5" />
               Download
             </Button>

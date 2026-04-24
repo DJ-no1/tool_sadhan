@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { RotateCw, RotateCcw, FlipHorizontal, FlipVertical, FileText } from "lucide-react";
 import {
   PDFToolLayout,
@@ -12,7 +12,7 @@ import {
   ActionButton,
   type ProcessingStatus,
 } from "@/components/tools/pdf";
-import { Button } from "@/components/ui/button";
+import { getPageCount, rotatePdf, type RotateAngle } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -33,38 +33,67 @@ export default function RotatePDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Rotation options
   const [rotateAll, setRotateAll] = useState<RotationAngle>(90);
   const [applyToAll, setApplyToAll] = useState(true);
   const [pageRotations, setPageRotations] = useState<PageRotation[]>([]);
-  const [totalPages] = useState(10); // Simulated page count
+  const [totalPages, setTotalPages] = useState(0);
 
   const handleFilesChange = useCallback((newFiles: PDFFile[]) => {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
+    setPageRotations([]);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const first = files[0]?.file;
+      const count = first ? await getPageCount(first) : 0;
+      if (!cancelled) setTotalPages(count);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [files]);
 
   const handleRotate = async () => {
     if (files.length === 0) return;
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [25, 50, 75, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      setProgress(p);
+    try {
+      const perPage: Record<number, number> = {};
+      if (!applyToAll) {
+        for (const pr of pageRotations) {
+          if (pr.rotation !== 0) perPage[pr.pageNum] = pr.rotation;
+        }
+      }
+      const result = await rotatePdf(
+        files[0].file,
+        {
+          angle: (applyToAll ? rotateAll : 0) as RotateAngle,
+          perPage: applyToAll ? undefined : perPage,
+        },
+        (p) => setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to rotate PDF.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_rotated.pdf"),
-      size: files[0].file.size,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -72,11 +101,10 @@ export default function RotatePDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
+    setPageRotations([]);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading rotated PDF");
-  };
 
   const rotationOptions = [
     { angle: 90 as const, label: "90° Right", icon: RotateCw },
@@ -227,9 +255,15 @@ export default function RotatePDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Rotating pages..." : undefined}
+          message={
+            status === "processing"
+              ? "Rotating pages..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

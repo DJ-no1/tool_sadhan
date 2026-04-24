@@ -13,10 +13,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import {
+  loadPdfDocument,
+  savePdfToBlob,
+  stripPdfExtension,
+} from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
   file: File;
+}
+
+function parseHexColor(hex: string): { r: number; g: number; b: number } {
+  const m = hex.replace("#", "");
+  const n = m.length === 3 ? m.split("").map((c) => c + c).join("") : m;
+  const int = parseInt(n, 16);
+  return {
+    r: ((int >> 16) & 255) / 255,
+    g: ((int >> 8) & 255) / 255,
+    b: (int & 255) / 255,
+  };
 }
 
 type EditTool = "select" | "text" | "draw" | "highlight" | "shape" | "image" | "eraser" | "whiteout";
@@ -39,7 +57,9 @@ export default function EditPDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Editor state
   const [currentTool, setCurrentTool] = useState<EditTool>("select");
@@ -54,26 +74,76 @@ export default function EditPDFPage() {
     setStatus("idle");
     setResultFile(null);
     setAnnotations([]);
+    setErrorMessage(null);
   }, []);
 
   const handleSave = async () => {
     if (files.length === 0) return;
 
     setStatus("processing");
-    setProgress(0);
+    setProgress(10);
+    setErrorMessage(null);
 
-    const intervals = [20, 40, 60, 80, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      setProgress(p);
+    try {
+      const doc: PDFDocument = await loadPdfDocument(files[0].file);
+      setProgress(40);
+
+      if (annotations.length > 0) {
+        const font = await doc.embedFont(StandardFonts.Helvetica);
+        for (const ann of annotations) {
+          const page = doc.getPage(
+            Math.max(0, Math.min(doc.getPageCount() - 1, (ann as Annotation & { page?: number }).page ? ((ann as Annotation & { page?: number }).page as number) - 1 : currentPage - 1)),
+          );
+          const { width, height } = page.getSize();
+          const color = parseHexColor(ann.color ?? currentColor);
+          const x = (ann.x / 100) * width;
+          const y = height - (ann.y / 100) * height;
+
+          if (ann.type === "text" && ann.content) {
+            page.drawText(ann.content, {
+              x,
+              y,
+              size: fontSize,
+              font,
+              color: rgb(color.r, color.g, color.b),
+            });
+          } else if (ann.type === "whiteout") {
+            page.drawRectangle({
+              x,
+              y: y - (ann.height ?? 20),
+              width: ann.width ?? 100,
+              height: ann.height ?? 20,
+              color: rgb(1, 1, 1),
+            });
+          } else if (ann.type === "highlight") {
+            page.drawRectangle({
+              x,
+              y: y - (ann.height ?? 16),
+              width: ann.width ?? 120,
+              height: ann.height ?? 16,
+              color: rgb(color.r, color.g, color.b),
+              opacity: 0.35,
+            });
+          }
+        }
+      }
+
+      setProgress(80);
+      const blob = await savePdfToBlob(doc);
+      setResultFile({
+        name: `${stripPdfExtension(files[0].file.name)}_edited.pdf`,
+        size: blob.size,
+        blob,
+      });
+      setProgress(100);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to save PDF.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_edited.pdf"),
-      size: files[0].file.size * 1.05,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -82,11 +152,9 @@ export default function EditPDFPage() {
     setProgress(0);
     setResultFile(null);
     setAnnotations([]);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading edited PDF");
-  };
 
   const tools: { id: EditTool; icon: typeof Pencil; label: string; desc: string }[] = [
     { id: "select", icon: Plus, label: "Select", desc: "Select & move objects" },
@@ -216,6 +284,28 @@ export default function EditPDFPage() {
                   showToolbar={true}
                 />
 
+                {/* Quick text annotation form (adds to the annotations list) */}
+                {currentTool === "text" && (
+                  <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
+                    <h3 className="font-semibold text-sm">Add text annotation</h3>
+                    <TextAnnotationForm
+                      onAdd={({ content, x, y }) =>
+                        setAnnotations((prev) => [
+                          ...prev,
+                          {
+                            id: `${Date.now()}-${Math.random()}`,
+                            type: "text",
+                            x,
+                            y,
+                            content,
+                            color: currentColor,
+                          },
+                        ])
+                      }
+                    />
+                  </div>
+                )}
+
                 {/* Annotations List */}
                 {annotations.length > 0 && (
                   <div className="rounded-lg border border-border bg-surface p-4">
@@ -266,12 +356,71 @@ export default function EditPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Applying changes to PDF..." : undefined}
+          message={
+            status === "processing"
+              ? "Applying changes to PDF..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>
     </PDFToolLayout>
+  );
+}
+
+function TextAnnotationForm({
+  onAdd,
+}: {
+  onAdd: (v: { content: string; x: number; y: number }) => void;
+}) {
+  const [content, setContent] = useState("");
+  const [x, setX] = useState(20);
+  const [y, setY] = useState(20);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <Input
+        placeholder="Text to insert"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        className="md:col-span-2 bg-surface-2 border-border-strong"
+      />
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">X%</span>
+        <Input
+          type="number"
+          min={0}
+          max={100}
+          value={x}
+          onChange={(e) => setX(parseInt(e.target.value) || 0)}
+          className="bg-surface-2 border-border-strong"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">Y%</span>
+        <Input
+          type="number"
+          min={0}
+          max={100}
+          value={y}
+          onChange={(e) => setY(parseInt(e.target.value) || 0)}
+          className="bg-surface-2 border-border-strong"
+        />
+      </div>
+      <Button
+        onClick={() => {
+          if (!content.trim()) return;
+          onAdd({ content, x, y });
+          setContent("");
+        }}
+        className="md:col-span-4 bg-red-500 hover:bg-red-600"
+      >
+        Add annotation
+      </Button>
+    </div>
   );
 }

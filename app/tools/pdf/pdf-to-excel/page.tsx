@@ -13,6 +13,7 @@ import {
 } from "@/components/tools/pdf";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { getPdfJs, stripPdfExtension } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -29,7 +30,9 @@ export default function PDFToExcelPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Options
   const [format, setFormat] = useState<OutputFormat>("xlsx");
@@ -42,6 +45,7 @@ export default function PDFToExcelPage() {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
 
   const handleConvert = async () => {
@@ -49,19 +53,60 @@ export default function PDFToExcelPage() {
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [15, 30, 50, 70, 90, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 350));
-      setProgress(p);
+    try {
+      // Real spreadsheet reconstruction from a PDF requires a dedicated
+      // table-detection engine. We ship a best-effort CSV export where each
+      // text run becomes a row and whitespace runs become column breaks.
+      const pdfjs = await getPdfJs();
+      const buffer = await files[0].file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({
+        data: buffer,
+        isEvalSupported: false,
+      }).promise;
+
+      const rows: string[] = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const text = await page.getTextContent();
+        let currentLine = "";
+        let lastY: number | null = null;
+        for (const item of text.items) {
+          if (!("str" in item)) continue;
+          const t = item as { str: string; transform: number[] };
+          const y = Math.round(t.transform[5]);
+          if (lastY !== null && Math.abs(y - lastY) > 2) {
+            rows.push(currentLine);
+            currentLine = "";
+          }
+          if (currentLine && t.str) currentLine += ",";
+          currentLine += (t.str || "").replace(/[",\n]/g, " ").trim();
+          lastY = y;
+        }
+        if (currentLine) rows.push(currentLine);
+        page.cleanup();
+        setProgress(10 + Math.round((i / pdf.numPages) * 80));
+      }
+      await pdf.destroy();
+
+      const blob = new Blob([rows.join("\n")], {
+        type: "text/csv;charset=utf-8",
+      });
+      setResultFile({
+        name: `${stripPdfExtension(files[0].file.name)}.csv`,
+        size: blob.size,
+        blob,
+      });
+      setProgress(100);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to extract table data.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", `.${format}`),
-      size: files[0].file.size * 0.9,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -69,11 +114,9 @@ export default function PDFToExcelPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading Excel file");
-  };
 
   const formats: { id: OutputFormat; name: string; desc: string }[] = [
     { id: "xlsx", name: "XLSX", desc: "Modern Excel" },
@@ -230,9 +273,17 @@ export default function PDFToExcelPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? `Converting PDF to ${format.toUpperCase()}...` : undefined}
+          message={
+            status === "processing"
+              ? `Extracting data as CSV...`
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : status === "completed"
+                  ? "Exported as CSV. Precise XLSX/XLS reconstruction requires a server-side table engine coming soon."
+                  : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

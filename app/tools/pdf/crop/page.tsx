@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { cropPdf, POINTS_PER_MM } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -31,7 +32,9 @@ export default function CropPDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Options
   const [cropMode, setCropMode] = useState<CropMode>("margin");
@@ -47,6 +50,7 @@ export default function CropPDFPage() {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
 
   const updateMargin = (value: number, side: "top" | "right" | "bottom" | "left") => {
@@ -70,19 +74,32 @@ export default function CropPDFPage() {
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [25, 50, 75, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      setProgress(p);
+    try {
+      // All three modes currently map to CropBox trimming on every page.
+      // Margin & preset modes use millimetre-to-point conversion.
+      const margins = {
+        top: marginTop * POINTS_PER_MM,
+        right: marginRight * POINTS_PER_MM,
+        bottom: marginBottom * POINTS_PER_MM,
+        left: marginLeft * POINTS_PER_MM,
+      };
+
+      const result = await cropPdf(
+        files[0].file,
+        { margins },
+        (p) => setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to crop PDF.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_cropped.pdf"),
-      size: files[0].file.size * 0.9,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -90,11 +107,9 @@ export default function CropPDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading cropped PDF");
-  };
 
   const presets: { id: PresetSize; name: string; desc: string }[] = [
     { id: "a4", name: "A4", desc: "210 × 297 mm" },
@@ -372,9 +387,15 @@ export default function CropPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Cropping PDF pages..." : undefined}
+          message={
+            status === "processing"
+              ? "Cropping PDF pages..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

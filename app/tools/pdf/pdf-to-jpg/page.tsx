@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Image as ImageIcon, Download, FileText, Layers, Grid } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Image as ImageIcon, FileText, Layers, Grid } from "lucide-react";
 import {
   PDFToolLayout,
   PDFDropzone,
@@ -13,6 +13,7 @@ import {
 } from "@/components/tools/pdf";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
+import { getPageCount, parsePageList, pdfToJpg } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -29,7 +30,10 @@ export default function PDFToJPGPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(0);
 
   // Options
   const [format, setFormat] = useState<OutputFormat>("jpg");
@@ -43,26 +47,59 @@ export default function PDFToJPGPage() {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const first = files[0]?.file;
+      const count = first ? await getPageCount(first) : 0;
+      if (!cancelled) setTotalPages(count);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [files]);
 
   const handleConvert = async () => {
     if (files.length === 0) return;
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [10, 25, 45, 65, 85, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setProgress(p);
+    try {
+      let pages: number[] | undefined;
+      if (mode === "range") {
+        pages = parsePageList(pageRange, totalPages || 9999).map((i) => i + 1);
+        if (pages.length === 0) {
+          throw new Error('Enter a page range like "1-5, 10".');
+        }
+      } else if (mode === "single") {
+        pages = [singlePage];
+      }
+
+      const result = await pdfToJpg(
+        files[0].file,
+        {
+          format,
+          quality: quality / 100,
+          // Assume PDF source is 72 DPI; convert target DPI to a scale factor.
+          scale: Math.max(0.5, dpi / 72),
+          pages,
+        },
+        (p) => setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to convert PDF.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: mode === "single" ? `page_${singlePage}.${format}` : `pdf_images.zip`,
-      size: files[0].file.size * 0.6,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -70,11 +107,9 @@ export default function PDFToJPGPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading images");
-  };
 
   const formats = [
     { id: "jpg" as const, name: "JPG", desc: "Best for photos" },
@@ -262,9 +297,15 @@ export default function PDFToJPGPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Converting PDF to images..." : undefined}
+          message={
+            status === "processing"
+              ? "Converting PDF to images..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

@@ -14,7 +14,7 @@ import {
 } from "@/components/tools/pdf";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { rasterizeAndRebuildPdf, resavePdf } from "@/lib/tools/pdf";
 
 type CompressionMode = "preset" | "size" | "percentage";
 type CompressionPreset = "extreme" | "recommended" | "less";
@@ -46,12 +46,15 @@ export default function CompressPDFPage() {
     name: string;
     size: number;
     url?: string;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFilesChange = useCallback((newFiles: PDFFile[]) => {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
 
   const handleCompress = async () => {
@@ -59,24 +62,76 @@ export default function CompressPDFPage() {
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    // Simulate compression process
-    const intervals = [10, 25, 40, 55, 70, 85, 95, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setProgress(p);
+    try {
+      // Resolve strength from the user's selected mode.
+      let jpegQuality: number;
+      let targetScale: number;
+
+      if (mode === "preset") {
+        if (preset === "extreme") {
+          jpegQuality = 0.45;
+          targetScale = Math.min(1, dpi / 96);
+        } else if (preset === "less") {
+          jpegQuality = 0.85;
+          targetScale = Math.min(2, dpi / 96);
+        } else {
+          jpegQuality = 0.7;
+          targetScale = Math.min(1.5, dpi / 96);
+        }
+      } else if (mode === "percentage") {
+        // 10% → gentle (0.85 quality); 90% → aggressive (0.25).
+        jpegQuality = Math.max(
+          0.2,
+          Math.min(0.9, 1 - targetPercentage / 110),
+        );
+        targetScale = Math.min(2, dpi / 96);
+      } else {
+        const ratio = Math.min(
+          1,
+          (targetSize * 1024 * 1024) / (files[0].file.size || 1),
+        );
+        jpegQuality = Math.max(0.25, Math.min(0.9, ratio));
+        targetScale = Math.min(2, dpi / 96);
+      }
+
+      // Apply user's advanced slider if they moved it (quality > 0.9 means
+      // they want near-lossless — we respect that).
+      jpegQuality = Math.min(jpegQuality, imageQuality / 100);
+
+      // Rasterising the whole PDF reliably produces a smaller output and
+      // applies the grayscale / DPI / quality preferences. For "less"
+      // compression preset we fall back to a simple re-save which preserves
+      // vector text.
+      const shouldRaster =
+        mode !== "preset" || preset !== "less" || grayscale;
+
+      const result = shouldRaster
+        ? await rasterizeAndRebuildPdf(
+            files[0].file,
+            {
+              scale: targetScale,
+              quality: jpegQuality,
+              grayscale,
+            },
+            (p) => setProgress(p),
+          )
+        : await resavePdf(
+            files[0].file,
+            { stripMetadata: removeMetadata },
+            (p) => setProgress(p),
+          );
+
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to compress PDF.",
+      );
+      setStatus("error");
     }
-
-    // Simulate result
-    const originalFile = files[0].file;
-    const compressionRatio = preset === "extreme" ? 0.3 : preset === "recommended" ? 0.5 : 0.7;
-    
-    setResultFile({
-      name: originalFile.name.replace(".pdf", "_compressed.pdf"),
-      size: Math.floor(originalFile.size * compressionRatio),
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -84,12 +139,9 @@ export default function CompressPDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    // In real implementation, this would download the actual file
-    console.log("Downloading compressed PDF");
-  };
 
   const presets = [
     {
@@ -394,10 +446,16 @@ export default function CompressPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Compressing your PDF..." : undefined}
+          message={
+            status === "processing"
+              ? "Compressing your PDF..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
           originalSize={files[0]?.file.size}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

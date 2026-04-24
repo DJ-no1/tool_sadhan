@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { FileOutput, FileText, Check } from "lucide-react";
 import {
   PDFToolLayout,
@@ -12,6 +12,7 @@ import {
   type ProcessingStatus,
 } from "@/components/tools/pdf";
 import { Input } from "@/components/ui/input";
+import { extractPages, getPageCount, parsePageList } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -25,18 +26,33 @@ export default function ExtractPDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [pageSelection, setPageSelection] = useState("");
   const [selectedPages, setSelectedPages] = useState<number[]>([]);
-  const totalPages = 20; // Simulated
+  const [totalPages, setTotalPages] = useState(0);
 
   const handleFilesChange = useCallback((newFiles: PDFFile[]) => {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
     setSelectedPages([]);
+    setErrorMessage(null);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const first = files[0]?.file;
+      const count = first ? await getPageCount(first) : 0;
+      if (!cancelled) setTotalPages(count);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [files]);
 
   const togglePage = (pageNum: number) => {
     if (selectedPages.includes(pageNum)) {
@@ -63,23 +79,39 @@ export default function ExtractPDFPage() {
   };
 
   const handleExtract = async () => {
-    if (files.length === 0 || selectedPages.length === 0) return;
+    if (files.length === 0) return;
+
+    // Combine typed ranges and grid selection, preferring explicit input when set.
+    const typed = parsePageList(pageSelection, totalPages).map((i) => i + 1);
+    const combined = Array.from(
+      new Set<number>([...typed, ...selectedPages]),
+    ).sort((a, b) => a - b);
+
+    if (combined.length === 0) {
+      setErrorMessage("Select at least one page to extract.");
+      setStatus("error");
+      return;
+    }
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [25, 50, 75, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      setProgress(p);
+    try {
+      const result = await extractPages(
+        files[0].file,
+        combined.join(","),
+        (p) => setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to extract pages.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: "extracted_pages.pdf",
-      size: (files[0].file.size / totalPages) * selectedPages.length,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -88,11 +120,9 @@ export default function ExtractPDFPage() {
     setProgress(0);
     setResultFile(null);
     setSelectedPages([]);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading extracted pages");
-  };
 
   return (
     <PDFToolLayout
@@ -203,10 +233,14 @@ export default function ExtractPDFPage() {
                 <ActionButton
                   icon={FileOutput}
                   onClick={handleExtract}
-                  disabled={selectedPages.length === 0}
+                  disabled={
+                    selectedPages.length === 0 && !pageSelection.trim()
+                  }
                   className="w-full"
                 >
-                  Extract {selectedPages.length} Pages
+                  Extract{selectedPages.length > 0
+                    ? ` ${selectedPages.length}`
+                    : ""} Pages
                 </ActionButton>
               </>
             )}
@@ -216,9 +250,15 @@ export default function ExtractPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Extracting pages..." : undefined}
+          message={
+            status === "processing"
+              ? "Extracting pages..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

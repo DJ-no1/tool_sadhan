@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Layers, GripVertical, Trash2, Eye, EyeOff, FileText, Plus } from "lucide-react";
+import { Layers, GripVertical, Trash2, Eye, EyeOff, FileText } from "lucide-react";
 import {
   PDFToolLayout,
   PDFDropzone,
@@ -10,6 +10,7 @@ import {
   type ProcessingStatus,
 } from "@/components/tools/pdf";
 import { Button } from "@/components/ui/button";
+import { getPageCount, organizePdf } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -30,28 +31,33 @@ export default function OrganizePDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Simulated pages
   const [pages, setPages] = useState<PDFPage[]>([]);
-  const totalPages = 12;
 
-  const handleFilesChange = useCallback((newFiles: PDFFile[]) => {
+  const handleFilesChange = useCallback(async (newFiles: PDFFile[]) => {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
-    
-    // Simulate page detection
-    if (newFiles.length > 0) {
-      setPages(
-        Array.from({ length: totalPages }, (_, i) => ({
-          id: `page-${i + 1}`,
-          pageNum: i + 1,
-          rotation: 0,
-          visible: true,
-        }))
-      );
+    setErrorMessage(null);
+
+    const first = newFiles[0]?.file;
+    if (!first) {
+      setPages([]);
+      return;
     }
+
+    const count = await getPageCount(first);
+    setPages(
+      Array.from({ length: count }, (_, i) => ({
+        id: `page-${i + 1}`,
+        pageNum: i + 1,
+        rotation: 0,
+        visible: true,
+      })),
+    );
   }, []);
 
   const movePage = (fromIndex: number, toIndex: number) => {
@@ -77,21 +83,33 @@ export default function OrganizePDFPage() {
   const handleOrganize = async () => {
     if (files.length === 0) return;
 
-    setStatus("processing");
-    setProgress(0);
+    const steps = pages
+      .filter((p) => p.visible)
+      .map((p) => ({ sourcePage: p.pageNum, rotation: p.rotation }));
 
-    const intervals = [20, 45, 70, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setProgress(p);
+    if (steps.length === 0) {
+      setErrorMessage("Keep at least one page.");
+      setStatus("error");
+      return;
     }
 
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_organized.pdf"),
-      size: files[0].file.size * (pages.filter(p => p.visible).length / totalPages),
-    });
+    setStatus("processing");
+    setProgress(0);
+    setErrorMessage(null);
 
-    setStatus("completed");
+    try {
+      const result = await organizePdf(files[0].file, steps, (p) =>
+        setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to organize PDF.",
+      );
+      setStatus("error");
+    }
   };
 
   const handleReset = () => {
@@ -100,11 +118,9 @@ export default function OrganizePDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading organized PDF");
-  };
 
   const visiblePages = pages.filter(p => p.visible);
 
@@ -254,9 +270,15 @@ export default function OrganizePDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Organizing your PDF..." : undefined}
+          message={
+            status === "processing"
+              ? "Organizing your PDF..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

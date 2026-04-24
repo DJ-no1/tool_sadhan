@@ -27,6 +27,7 @@ export default function PPTToPDFPage() {
     name: string;
     size: number;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Options
   const [quality, setQuality] = useState<Quality>("standard");
@@ -53,20 +54,14 @@ export default function PPTToPDFPage() {
     if (files.length === 0) return;
 
     setStatus("processing");
+    setProgress(40);
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    setErrorMessage(
+      "Converting PowerPoint presentations to PDF with fonts and animations requires a server-side renderer that isn't available in the browser. Your file has not been modified.",
+    );
+    setStatus("error");
     setProgress(0);
-
-    const intervals = [15, 35, 55, 75, 95, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 350));
-      setProgress(p);
-    }
-
-    setResultFile({
-      name: files[0].file.name.replace(/\.(pptx?|odp)$/i, ".pdf"),
-      size: files[0].file.size * 0.75,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -74,11 +69,9 @@ export default function PPTToPDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading PDF");
-  };
 
   const qualities: { id: Quality; name: string; desc: string }[] = [
     { id: "standard", name: "Standard", desc: "Optimized for screen" },
@@ -253,9 +246,15 @@ export default function PPTToPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Converting presentation to PDF..." : undefined}
+          message={
+            status === "processing"
+              ? "Converting presentation to PDF..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

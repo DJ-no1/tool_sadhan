@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Hash, AlignLeft, AlignCenter, AlignRight, Type, Settings2 } from "lucide-react";
+import { Hash, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import {
   PDFToolLayout,
   PDFDropzone,
@@ -14,6 +14,10 @@ import {
 } from "@/components/tools/pdf";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import {
+  addPageNumbers,
+  type NumberFormat as LibNumberFormat,
+} from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -30,7 +34,9 @@ export default function PageNumbersPDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Options
   const [position, setPosition] = useState<Position>("bottom-center");
@@ -45,26 +51,64 @@ export default function PageNumbersPDFPage() {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
+
+  const formatMap: Record<NumberFormat, LibNumberFormat> = {
+    "1": "plain",
+    "1/n": "n-of-m",
+    "Page 1": "page",
+    "- 1 -": "dashed",
+    "i": "roman-lower",
+    "I": "roman-upper",
+  };
+
+  const parseHexColor = (hex: string): { r: number; g: number; b: number } => {
+    const cleaned = hex.replace("#", "");
+    const full =
+      cleaned.length === 3
+        ? cleaned
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : cleaned.padEnd(6, "0");
+    return {
+      r: parseInt(full.slice(0, 2), 16) || 0,
+      g: parseInt(full.slice(2, 4), 16) || 0,
+      b: parseInt(full.slice(4, 6), 16) || 0,
+    };
+  };
 
   const handleAddNumbers = async () => {
     if (files.length === 0) return;
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [25, 50, 75, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      setProgress(p);
+    try {
+      const result = await addPageNumbers(
+        files[0].file,
+        {
+          position,
+          format: formatMap[format],
+          startAt: startNumber,
+          fontSize,
+          margin,
+          color: parseHexColor(color),
+          skipFirst,
+        },
+        (p) => setProgress(p),
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to add page numbers.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_numbered.pdf"),
-      size: files[0].file.size * 1.01,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -72,11 +116,9 @@ export default function PageNumbersPDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading numbered PDF");
-  };
 
   const positions: { id: Position; label: string; align: "left" | "center" | "right"; pos: "top" | "bottom" }[] = [
     { id: "top-left", label: "Top Left", align: "left", pos: "top" },
@@ -271,9 +313,15 @@ export default function PageNumbersPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Adding page numbers..." : undefined}
+          message={
+            status === "processing"
+              ? "Adding page numbers..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

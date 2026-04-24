@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { FileText, FileType2, Settings2 } from "lucide-react";
+import { FileText, FileType2 } from "lucide-react";
 import {
   PDFToolLayout,
-  PDFDropzone,
   ProcessingPanel,
   OptionsPanel,
   OptionGroup,
@@ -28,6 +27,7 @@ export default function WordToPDFPage() {
     name: string;
     size: number;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Options
   const [quality, setQuality] = useState<PDFQuality>("standard");
@@ -36,12 +36,6 @@ export default function WordToPDFPage() {
   const [createOutline, setCreateOutline] = useState(false);
 
   const generateId = () => Math.random().toString(36).substring(7);
-
-  const handleFilesChange = useCallback((newFiles: DocFile[]) => {
-    setFiles(newFiles);
-    setStatus("idle");
-    setResultFile(null);
-  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -60,20 +54,14 @@ export default function WordToPDFPage() {
     if (files.length === 0) return;
 
     setStatus("processing");
+    setProgress(40);
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    setErrorMessage(
+      "Converting Word documents to PDF with full formatting requires a server-side renderer (LibreOffice/Docx engine) that isn't available in the browser. Your file has not been modified.",
+    );
+    setStatus("error");
     setProgress(0);
-
-    const intervals = [15, 35, 55, 75, 95, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setProgress(p);
-    }
-
-    setResultFile({
-      name: files[0].file.name.replace(/\.(docx?|odt)$/i, ".pdf"),
-      size: files[0].file.size * 0.8,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -81,11 +69,9 @@ export default function WordToPDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading PDF");
-  };
 
   const qualityOptions: { id: PDFQuality; name: string; desc: string }[] = [
     { id: "standard", name: "Standard", desc: "Optimized for screen viewing" },
@@ -249,9 +235,15 @@ export default function WordToPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Converting Word to PDF..." : undefined}
+          message={
+            status === "processing"
+              ? "Converting Word to PDF..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

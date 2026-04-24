@@ -27,6 +27,7 @@ export default function ExcelToPDFPage() {
     name: string;
     size: number;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Options
   const [layout, setLayout] = useState<PageLayout>("fit");
@@ -53,20 +54,14 @@ export default function ExcelToPDFPage() {
     if (files.length === 0) return;
 
     setStatus("processing");
+    setProgress(40);
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    setErrorMessage(
+      "Converting Excel spreadsheets to PDF with gridlines and charts requires a server-side renderer that isn't available in the browser. Your file has not been modified.",
+    );
+    setStatus("error");
     setProgress(0);
-
-    const intervals = [15, 35, 55, 75, 95, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setProgress(p);
-    }
-
-    setResultFile({
-      name: files[0].file.name.replace(/\.(xlsx?|ods)$/i, ".pdf"),
-      size: files[0].file.size * 0.7,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -74,11 +69,9 @@ export default function ExcelToPDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading PDF");
-  };
 
   const layouts: { id: PageLayout; name: string; desc: string }[] = [
     { id: "fit", name: "Fit to Page", desc: "Scale to fit page width" },
@@ -253,9 +246,15 @@ export default function ExcelToPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Converting Excel to PDF..." : undefined}
+          message={
+            status === "processing"
+              ? "Converting Excel to PDF..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Lock, Eye, EyeOff, Shield, Copy, FileText, Printer, Edit3 } from "lucide-react";
+import { Lock, Eye, EyeOff, Shield, Copy, Printer, Edit3 } from "lucide-react";
 import {
   PDFToolLayout,
   PDFDropzone,
@@ -12,7 +12,6 @@ import {
   type ProcessingStatus,
 } from "@/components/tools/pdf";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 interface PDFFile {
   id: string;
@@ -27,6 +26,7 @@ export default function ProtectPDFPage() {
     name: string;
     size: number;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Password options
   const [password, setPassword] = useState("");
@@ -43,26 +43,24 @@ export default function ProtectPDFPage() {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
 
   const handleProtect = async () => {
     if (files.length === 0 || password !== confirmPassword || password.length < 4) return;
 
     setStatus("processing");
+    setProgress(30);
+
+    // pdf-lib (our client-side PDF engine) does not yet support AES password
+    // encryption. We intentionally surface this rather than silently producing
+    // an unprotected file labelled "_protected.pdf", which would be misleading.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    setErrorMessage(
+      "Password encryption requires a server-side step that isn't available in the browser yet. We did not modify your file — please use the desktop export flow for encrypted PDFs.",
+    );
+    setStatus("error");
     setProgress(0);
-
-    const intervals = [25, 50, 75, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setProgress(p);
-    }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", "_protected.pdf"),
-      size: files[0].file.size * 1.01,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -72,11 +70,9 @@ export default function ProtectPDFPage() {
     setResultFile(null);
     setPassword("");
     setConfirmPassword("");
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading protected PDF");
-  };
 
   const passwordsMatch = password === confirmPassword;
   const passwordValid = password.length >= 4;
@@ -290,9 +286,15 @@ export default function ProtectPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Encrypting your PDF..." : undefined}
+          message={
+            status === "processing"
+              ? "Encrypting your PDF..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

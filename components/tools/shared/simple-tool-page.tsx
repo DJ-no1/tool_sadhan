@@ -106,10 +106,8 @@ export function SimpleToolPage({
     setResultFile(null);
   };
 
-  const handleDownload = () => {
-    // In real implementation, download would happen here.
-    console.log(`Downloading ${resultFile?.name}`);
-  };
+  // Actual download is handled inside `ProcessingPanel` using `sourceFile`.
+  // This stays as an optional hook if callers want to add analytics later.
 
   return (
     <ToolLayout
@@ -152,7 +150,7 @@ export function SimpleToolPage({
           message={status === "processing" ? processingMessage : undefined}
           resultFile={resultFile || undefined}
           originalSize={files[0]?.file.size}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

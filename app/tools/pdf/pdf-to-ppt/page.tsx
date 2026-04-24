@@ -12,6 +12,7 @@ import {
   type ProcessingStatus,
 } from "@/components/tools/pdf";
 import { cn } from "@/lib/utils";
+import { extractPdfText, pdfToJpg } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -28,7 +29,9 @@ export default function PDFToPPTPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Options
   const [format, setFormat] = useState<OutputFormat>("pptx");
@@ -39,6 +42,7 @@ export default function PDFToPPTPage() {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
 
   const handleConvert = async () => {
@@ -46,19 +50,33 @@ export default function PDFToPPTPage() {
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [15, 30, 50, 70, 90, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      setProgress(p);
+    try {
+      if (mode === "images") {
+        // Each page → JPG, zipped. Users can "Insert Picture" into PowerPoint.
+        const result = await pdfToJpg(
+          files[0].file,
+          { format: "jpg", quality: 0.85, scale: 2 },
+          (p) => setProgress(p),
+        );
+        setResultFile(result);
+      } else {
+        const result = await extractPdfText(files[0].file, (p) =>
+          setProgress(p),
+        );
+        setResultFile(result);
+      }
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Failed to convert PDF.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", `.${format}`),
-      size: files[0].file.size * 1.3,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -66,11 +84,9 @@ export default function PDFToPPTPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading PowerPoint file");
-  };
 
   const formats: { id: OutputFormat; name: string; desc: string }[] = [
     { id: "pptx", name: "PPTX", desc: "Modern PowerPoint" },
@@ -187,9 +203,21 @@ export default function PDFToPPTPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? `Converting PDF to ${format.toUpperCase()}...` : undefined}
+          message={
+            status === "processing"
+              ? mode === "images"
+                ? "Rendering slides as images..."
+                : "Extracting slide text..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : status === "completed"
+                  ? mode === "images"
+                    ? "Delivered a ZIP of slide images. Import them into PowerPoint via Insert → Photo Album."
+                    : "Delivered slide text (.txt). Native PPTX export is coming via a server-side renderer."
+                  : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

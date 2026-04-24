@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { FileImage, GripVertical, Trash2, RotateCw, Settings2 } from "lucide-react";
+import { FileImage, GripVertical, Trash2, RotateCw } from "lucide-react";
 import {
   PDFToolLayout,
   ProcessingPanel,
@@ -13,6 +13,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import {
+  jpgToPdf,
+  type JpgMargin,
+  type JpgOrientation,
+  type JpgPageSize,
+} from "@/lib/tools/pdf";
 
 interface ImageFile {
   id: string;
@@ -22,8 +28,8 @@ interface ImageFile {
 }
 
 type PageSize = "a4" | "letter" | "legal" | "fit";
-type Orientation = "portrait" | "landscape" | "auto";
-type Margin = "none" | "small" | "normal" | "large";
+type Orientation = JpgOrientation;
+type Margin = JpgMargin;
 
 export default function JPGToPDFPage() {
   const [images, setImages] = useState<ImageFile[]>([]);
@@ -32,7 +38,9 @@ export default function JPGToPDFPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   // Options
@@ -107,24 +115,43 @@ export default function JPGToPDFPage() {
     setImages(newImages);
   };
 
+  const pageSizeMap: Record<PageSize, JpgPageSize> = {
+    a4: "A4",
+    letter: "Letter",
+    legal: "Legal",
+    fit: "fit",
+  };
+
   const handleConvert = async () => {
     if (images.length === 0) return;
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [15, 35, 55, 75, 90, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      setProgress(p);
+    try {
+      const result = await jpgToPdf(
+        images.map((img) => img.file),
+        {
+          pageSize: pageSizeMap[pageSize],
+          orientation,
+          margin,
+          rotations: images.map((img) => img.rotation),
+        },
+        (p) => setProgress(p),
+        images.length === 1
+          ? `${images[0].file.name.replace(/\.[^.]+$/, "")}.pdf`
+          : "images_to_pdf.pdf",
+      );
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to convert images.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: "images_to_pdf.pdf",
-      size: images.reduce((acc, img) => acc + img.file.size, 0) * 0.8,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -132,11 +159,9 @@ export default function JPGToPDFPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading PDF");
-  };
 
   const pageSizes = [
     { id: "a4" as const, name: "A4", desc: "210 × 297 mm" },
@@ -396,9 +421,15 @@ export default function JPGToPDFPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? "Creating PDF from images..." : undefined}
+          message={
+            status === "processing"
+              ? "Creating PDF from images..."
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={images[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>

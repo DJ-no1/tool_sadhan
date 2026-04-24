@@ -12,6 +12,7 @@ import {
   type ProcessingStatus,
 } from "@/components/tools/pdf";
 import { cn } from "@/lib/utils";
+import { extractPdfText } from "@/lib/tools/pdf";
 
 interface PDFFile {
   id: string;
@@ -28,7 +29,9 @@ export default function PDFToWordPage() {
   const [resultFile, setResultFile] = useState<{
     name: string;
     size: number;
+    blob?: Blob;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Options
   const [format, setFormat] = useState<OutputFormat>("docx");
@@ -41,6 +44,7 @@ export default function PDFToWordPage() {
     setFiles(newFiles);
     setStatus("idle");
     setResultFile(null);
+    setErrorMessage(null);
   }, []);
 
   const handleConvert = async () => {
@@ -48,19 +52,23 @@ export default function PDFToWordPage() {
 
     setStatus("processing");
     setProgress(0);
+    setErrorMessage(null);
 
-    const intervals = [10, 25, 45, 65, 85, 100];
-    for (const p of intervals) {
-      await new Promise((resolve) => setTimeout(resolve, 350));
-      setProgress(p);
+    try {
+      // Fully-formatted DOCX export requires a server-side renderer. We ship a
+      // best-effort plain-text extraction so the user still gets real content.
+      const result = await extractPdfText(files[0].file, (p) => setProgress(p));
+      setResultFile(result);
+      setStatus("completed");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Failed to extract text from PDF.",
+      );
+      setStatus("error");
     }
-
-    setResultFile({
-      name: files[0].file.name.replace(".pdf", `.${format}`),
-      size: files[0].file.size * 1.2,
-    });
-
-    setStatus("completed");
   };
 
   const handleReset = () => {
@@ -68,11 +76,9 @@ export default function PDFToWordPage() {
     setStatus("idle");
     setProgress(0);
     setResultFile(null);
+    setErrorMessage(null);
   };
 
-  const handleDownload = () => {
-    console.log("Downloading Word document");
-  };
 
   const formats: { id: OutputFormat; name: string; desc: string }[] = [
     { id: "docx", name: "DOCX", desc: "Modern Word format" },
@@ -233,9 +239,17 @@ export default function PDFToWordPage() {
         <ProcessingPanel
           status={status}
           progress={progress}
-          message={status === "processing" ? `Converting PDF to ${format.toUpperCase()}...` : undefined}
+          message={
+            status === "processing"
+              ? `Extracting text for ${format.toUpperCase()}...`
+              : status === "error"
+                ? (errorMessage ?? undefined)
+                : status === "completed"
+                  ? "Exported as plain text (.txt). Fully-formatted DOCX export is coming via a server-side renderer."
+                  : undefined
+          }
           resultFile={resultFile || undefined}
-          onDownload={handleDownload}
+          sourceFile={files[0]?.file ?? null}
           onReset={handleReset}
         />
       </div>
